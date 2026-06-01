@@ -1,4 +1,4 @@
-import { Package } from 'lucide-react'
+import { Boxes, Package } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
@@ -16,12 +16,25 @@ export function AppMenu() {
             to="/articles"
             className={({ isActive }) =>
               cn(
-                'transition-colors hover:text-foreground',
+                'inline-flex items-center gap-1.5 transition-colors hover:text-foreground',
                 isActive ? 'font-medium text-foreground' : 'text-muted-foreground',
               )
             }
           >
+            <Package className="h-4 w-4" aria-hidden="true" />
             Articles
+          </NavLink>
+          <NavLink
+            to="/stock"
+            className={({ isActive }) =>
+              cn(
+                'inline-flex items-center gap-1.5 transition-colors hover:text-foreground',
+                isActive ? 'font-medium text-foreground' : 'text-muted-foreground',
+              )
+            }
+          >
+            <Boxes className="h-4 w-4" aria-hidden="true" />
+            Stock
           </NavLink>
         </nav>
       </div>

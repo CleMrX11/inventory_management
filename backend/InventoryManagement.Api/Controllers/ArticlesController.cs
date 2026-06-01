@@ -106,5 +106,10 @@ public sealed class ArticlesController : ControllerBase
         {
             return NotFound(new { ex.Message });
         }
+        catch (ConflictException ex)
+        {
+            return Conflict(new { ex.Message });
+        }
     }
+
 }
