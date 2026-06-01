@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/InventoryManagement.Api/InventoryManagement.Api.csproj" />
+    <Project Path="backend/InventoryManagement.Application/InventoryManagement.Application.csproj" />
+    <Project Path="backend/InventoryManagement.Domain/InventoryManagement.Domain.csproj" />
+    <Project Path="backend/InventoryManagement.Infrastructure/InventoryManagement.Infrastructure.csproj" />
+    <Project Path="backend/InventoryManagement.Tests/InventoryManagement.Tests.csproj" />
+  </Folder>
+</Solution>
