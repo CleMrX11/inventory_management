@@ -1,7 +1,6 @@
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

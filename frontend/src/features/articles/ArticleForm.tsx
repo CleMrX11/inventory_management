@@ -1,9 +1,9 @@
-import type { FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { Article, ArticlePayload } from './types'
+import type { Article, ArticleCategory, ArticlePayload } from './types'
 
 type ArticleFormProps = {
   article: Article | null
@@ -13,15 +13,22 @@ type ArticleFormProps = {
 }
 
 export function ArticleForm({ article, onSubmit, onCancel, isSaving }: ArticleFormProps) {
+  const initialCategory = article?.category === 'FoodItem' ? 'FoodItem' : 'Merchandise'
+  const [category, setCategory] = useState<ArticleCategory>(initialCategory)
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-
     await onSubmit({
       reference: String(formData.get('reference') ?? '').trim(),
       name: String(formData.get('name') ?? '').trim(),
+      category,
       priceExcludingTax: Number(formData.get('priceExcludingTax')),
       priceIncludingTax: Number(formData.get('priceIncludingTax')),
+      expirationDate: category === 'FoodItem' ? String(formData.get('expirationDate') ?? '') : null,
+      takeawayAvailability:
+        category === 'FoodItem' ? String(formData.get('takeawayAvailability') ?? '') as ArticlePayload['takeawayAvailability'] : null,
+      packagingLevel: category === 'Merchandise' ? String(formData.get('packagingLevel') ?? '') as ArticlePayload['packagingLevel'] : null,
     })
   }
 
@@ -56,6 +63,68 @@ export function ArticleForm({ article, onSubmit, onCancel, isSaving }: ArticleFo
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" defaultValue={article?.name ?? ''} required />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as ArticleCategory)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              required
+            >
+              <option value="FoodItem">Food item</option>
+              <option value="Merchandise">Merchandise</option>
+            </select>
+          </div>
+
+          {category === 'FoodItem' && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="space-y-2">
+                <Label htmlFor="expirationDate">Expiration date</Label>
+                <Input
+                  id="expirationDate"
+                  name="expirationDate"
+                  type="date"
+                  defaultValue={article?.expirationDate ?? ''}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="takeawayAvailability">Takeaway availability</Label>
+                <select
+                  id="takeawayAvailability"
+                  name="takeawayAvailability"
+                  defaultValue={article?.takeawayAvailability ?? 'Both'}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  required
+                >
+                  <option value="TakeawayOnly">Takeaway only</option>
+                  <option value="OnSiteOnly">On site only</option>
+                  <option value="Both">Both</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {category === 'Merchandise' && (
+            <div className="space-y-2">
+              <Label htmlFor="packagingLevel">Packaging level</Label>
+              <select
+                id="packagingLevel"
+                name="packagingLevel"
+                defaultValue={article?.packagingLevel ?? 'New'}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                required
+              >
+                <option value="New">New</option>
+                <option value="Refurbished">Refurbished</option>
+                <option value="Unsellable">Unsellable</option>
+              </select>
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="space-y-2">

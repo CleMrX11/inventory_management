@@ -8,8 +8,11 @@ The application manages articles with:
 
 - Unique EAN-13 reference
 - Name
+- Category (`FoodItem` or `Merchandise`)
 - Price excluding tax (HT)
 - Price including tax (TTC)
+- Food details: expiration date and takeaway availability
+- Merchandise details: packaging level
 
 Business rules are enforced in the domain:
 

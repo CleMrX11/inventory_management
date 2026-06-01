@@ -18,8 +18,12 @@ public sealed class CreateArticleUseCase(IArticleRepository articles, IUnitOfWor
         var article = Article.Create(
             reference,
             command.Name,
+            ArticleCategoryParser.Parse(command.Category),
             new Money(command.PriceExcludingTax),
-            new Money(command.PriceIncludingTax));
+            new Money(command.PriceIncludingTax),
+            ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate),
+            ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability),
+            ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel));
 
         articles.Add(article);
         await unitOfWork.SaveChangesAsync(cancellationToken);

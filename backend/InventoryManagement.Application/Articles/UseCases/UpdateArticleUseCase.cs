@@ -19,14 +19,28 @@ public sealed class UpdateArticleUseCase(IArticleRepository articles, IUnitOfWor
             throw new ConflictException("An article with this reference already exists.");
         }
 
-        article.ChangeReference(reference);
-        article.Update(
+        var category = ArticleCategoryParser.Parse(command.Category);
+        var priceExcludingTax = new Money(command.PriceExcludingTax);
+        var priceIncludingTax = new Money(command.PriceIncludingTax);
+        var expirationDate = ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate);
+        var takeawayAvailability = ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability);
+        var packagingLevel = ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel);
+
+        var updatedArticle = Article.Create(
+            id,
+            reference,
             command.Name,
-            new Money(command.PriceExcludingTax),
-            new Money(command.PriceIncludingTax));
+            category,
+            priceExcludingTax,
+            priceIncludingTax,
+            expirationDate,
+            takeawayAvailability,
+            packagingLevel);
+
+        articles.Replace(article, updatedArticle);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return ArticleMapper.ToDto(article);
+        return ArticleMapper.ToDto(updatedArticle);
     }
 }

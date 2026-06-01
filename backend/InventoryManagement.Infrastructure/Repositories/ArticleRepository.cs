@@ -32,6 +32,12 @@ internal sealed class ArticleRepository(AppDbContext dbContext) : IArticleReposi
         dbContext.Articles.Add(article);
     }
 
+    public void Replace(Article existingArticle, Article replacementArticle)
+    {
+        dbContext.Entry(existingArticle).State = EntityState.Detached;
+        dbContext.Articles.Update(replacementArticle);
+    }
+
     public void Remove(Article article)
     {
         dbContext.Articles.Remove(article);

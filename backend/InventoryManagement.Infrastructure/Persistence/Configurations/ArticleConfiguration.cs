@@ -27,6 +27,17 @@ internal sealed class ArticleConfiguration : IEntityTypeConfiguration<Article>
             .HasMaxLength(200)
             .IsRequired();
 
+        builder.Property(article => article.Category)
+            .HasConversion<string>()
+            .HasMaxLength(30)
+            .HasDefaultValue(ArticleCategory.Merchandise)
+            .IsRequired();
+
+        builder
+            .HasDiscriminator(article => article.Category)
+            .HasValue<FoodArticle>(ArticleCategory.FoodItem)
+            .HasValue<MerchandiseArticle>(ArticleCategory.Merchandise);
+
         builder.Property(article => article.PriceExcludingTax)
             .HasConversion(price => price.Amount, amount => new Money(amount))
             .HasPrecision(12, 2)

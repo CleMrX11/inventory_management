@@ -4,5 +4,9 @@ public sealed record ArticleDto(
     Guid Id,
     string Reference,
     string Name,
+    string Category,
     decimal PriceExcludingTax,
-    decimal PriceIncludingTax);
+    decimal PriceIncludingTax,
+    string? ExpirationDate,
+    string? TakeawayAvailability,
+    string? PackagingLevel);

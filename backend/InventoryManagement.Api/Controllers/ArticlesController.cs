@@ -37,7 +37,15 @@ public sealed class ArticlesController : ControllerBase
         try
         {
             var article = await useCase.ExecuteAsync(
-                new CreateArticleCommand(request.Reference, request.Name, request.PriceExcludingTax, request.PriceIncludingTax),
+                new CreateArticleCommand(
+                    request.Reference,
+                    request.Name,
+                    request.Category,
+                    request.PriceExcludingTax,
+                    request.PriceIncludingTax,
+                    request.ExpirationDate,
+                    request.TakeawayAvailability,
+                    request.PackagingLevel),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetById), new { id = article.Id }, article);
@@ -58,7 +66,16 @@ public sealed class ArticlesController : ControllerBase
         try
         {
             var article = await useCase.ExecuteAsync(
-                new UpdateArticleCommand(id, request.Reference, request.Name, request.PriceExcludingTax, request.PriceIncludingTax),
+                new UpdateArticleCommand(
+                    id,
+                    request.Reference,
+                    request.Name,
+                    request.Category,
+                    request.PriceExcludingTax,
+                    request.PriceIncludingTax,
+                    request.ExpirationDate,
+                    request.TakeawayAvailability,
+                    request.PackagingLevel),
                 cancellationToken);
 
             return Ok(article);
