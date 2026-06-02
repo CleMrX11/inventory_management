@@ -45,6 +45,7 @@ Simplifications pour le projet, qui devraient être revues dans le cas d'une app
 ## Non terminé / améliorations connues
 
 - Dans l'UI, pour retirer un produit alimentaire, il faut sélectionner exactement la date de DLC du lot concerné. Ce n'est pas très pratique; il faudrait revoir l'interface de stock pour sélectionner directement le batch / lot de `StockItem` au lieu de ressaisir ses caractéristiques.
+- Une UI dédiée pour la partie inventaire pourrait être pertinente. 
 
 ## Utilisation de l'IA
 
