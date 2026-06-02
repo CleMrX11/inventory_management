@@ -8,10 +8,6 @@ export type Article = {
   name: string;
   category: ArticleCategory;
   priceExcludingTax: number;
-  priceIncludingTax: number;
-  expirationDate?: string | null;
-  takeawayAvailability?: TakeawayAvailability | null;
-  packagingLevel?: PackagingLevel | null;
 };
 
 export type ArticlePayload = {
@@ -19,7 +15,4 @@ export type ArticlePayload = {
   name: string;
   category: ArticleCategory;
   priceExcludingTax: number;
-  expirationDate?: string | null;
-  takeawayAvailability?: TakeawayAvailability | null;
-  packagingLevel?: PackagingLevel | null;
 };

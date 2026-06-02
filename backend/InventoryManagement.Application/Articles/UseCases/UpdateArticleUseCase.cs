@@ -21,19 +21,13 @@ public sealed class UpdateArticleUseCase(IArticleRepository articles, IUnitOfWor
 
         var category = ArticleCategoryParser.Parse(command.Category);
         var priceExcludingTax = new Money(command.PriceExcludingTax);
-        var expirationDate = ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate);
-        var takeawayAvailability = ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability);
-        var packagingLevel = ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel);
 
         var updatedArticle = Article.Create(
             id,
             reference,
             command.Name,
             category,
-            priceExcludingTax,
-            expirationDate,
-            takeawayAvailability,
-            packagingLevel);
+            priceExcludingTax);
 
         articles.Replace(article, updatedArticle);
 

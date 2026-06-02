@@ -24,22 +24,27 @@ public sealed class StockPersistenceTests
         {
             await dbContext.Database.EnsureCreatedAsync();
 
-            var stockItem = StockItem.Create(article.Id);
-            stockItem.Receive(10, "Supplier delivery");
-            stockItem.Remove(3, "Damaged");
+            var newStockItem = StockItem.Create(article, null, null, PackagingLevel.New);
+            newStockItem.Receive(10, "Supplier delivery");
+            newStockItem.Remove(3, "Damaged");
+            var unsellableStockItem = StockItem.Create(article, null, null, PackagingLevel.Unsellable);
+            unsellableStockItem.Receive(2, "Damaged return");
 
             dbContext.Articles.Add(article);
-            dbContext.StockItems.Add(stockItem);
+            dbContext.StockItems.AddRange(newStockItem, unsellableStockItem);
             await dbContext.SaveChangesAsync();
         }
 
         await using (var dbContext = new AppDbContext(options))
         {
-            var persistedStockItem = await dbContext.StockItems
+            var persistedStockItems = await dbContext.StockItems
                 .Include(stockItem => stockItem.Movements)
-                .SingleAsync(stockItem => stockItem.ArticleId == article.Id);
+                .Where(stockItem => stockItem.ArticleId == article.Id)
+                .ToListAsync();
+            var persistedStockItem = persistedStockItems.Single(stockItem => stockItem.PackagingLevel == PackagingLevel.New);
 
             Assert.Equal(7, persistedStockItem.CurrentQuantity);
+            Assert.Equal(2, persistedStockItems.Single(stockItem => stockItem.PackagingLevel == PackagingLevel.Unsellable).CurrentQuantity);
             Assert.Collection(
                 persistedStockItem.Movements.OrderBy(movement => movement.QuantityBefore),
                 movement =>
@@ -63,9 +68,6 @@ public sealed class StockPersistenceTests
             new Ean13Reference("4006381333931"),
             "Keyboard",
             ArticleCategory.Merchandise,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New);
+            new Money(100));
     }
 }

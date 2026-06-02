@@ -1,4 +1,5 @@
 using InventoryManagement.Application.Abstractions;
+using InventoryManagement.Application.Articles;
 using InventoryManagement.Application.Common;
 using InventoryManagement.Application.Stock.Commands;
 using InventoryManagement.Domain.Articles;
@@ -14,15 +15,21 @@ public sealed class CreateStockMovementUseCase(
     public async Task<StockMovementDto> ExecuteAsync(CreateStockMovementCommand command, CancellationToken cancellationToken)
     {
         var articleId = new ArticleId(command.ArticleId);
-        if (await articles.GetByIdAsync(articleId, cancellationToken) is null)
+        var article = await articles.GetByIdAsync(articleId, cancellationToken);
+        if (article is null)
         {
             throw new NotFoundException("Article not found.");
         }
 
-        var stockItem = await stockItems.GetByArticleIdAsync(articleId, cancellationToken);
+        var expirationDate = ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate);
+        var takeawayAvailability = ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability);
+        var packagingLevel = ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel);
+        var articleStockItems = await stockItems.ListByArticleIdAsync(articleId, cancellationToken);
+        var stockItem = articleStockItems.SingleOrDefault(item =>
+            item.MatchesLot(expirationDate, takeawayAvailability, packagingLevel));
         if (stockItem is null)
         {
-            stockItem = StockItem.Create(articleId);
+            stockItem = StockItem.Create(article, expirationDate, takeawayAvailability, packagingLevel);
             stockItems.Add(stockItem);
         }
 

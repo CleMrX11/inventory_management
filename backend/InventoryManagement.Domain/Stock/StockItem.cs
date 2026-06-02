@@ -8,6 +8,9 @@ public sealed class StockItem : AggregateRoot<StockItemId>
     private readonly List<StockMovement> movements = [];
 
     public ArticleId ArticleId { get; private set; }
+    public DateOnly? ExpirationDate { get; private set; }
+    public TakeawayAvailability? TakeawayAvailability { get; private set; }
+    public PackagingLevel? PackagingLevel { get; private set; }
     public int CurrentQuantity { get; private set; }
     public IReadOnlyCollection<StockMovement> Movements => movements.AsReadOnly();
 
@@ -15,14 +18,34 @@ public sealed class StockItem : AggregateRoot<StockItemId>
     {
     }
 
-    private StockItem(StockItemId id, ArticleId articleId) : base(id)
+    private StockItem(
+        StockItemId id,
+        ArticleId articleId,
+        DateOnly? expirationDate,
+        TakeawayAvailability? takeawayAvailability,
+        PackagingLevel? packagingLevel) : base(id)
     {
         ArticleId = articleId;
+        ExpirationDate = expirationDate;
+        TakeawayAvailability = takeawayAvailability;
+        PackagingLevel = packagingLevel;
     }
 
-    public static StockItem Create(ArticleId articleId)
+    public static StockItem Create(
+        Article article,
+        DateOnly? expirationDate,
+        TakeawayAvailability? takeawayAvailability,
+        PackagingLevel? packagingLevel)
     {
-        return new StockItem(StockItemId.New(), articleId);
+        ValidateLotSpecificity(article.Category, expirationDate, takeawayAvailability, packagingLevel);
+        return new StockItem(StockItemId.New(), article.Id, expirationDate, takeawayAvailability, packagingLevel);
+    }
+
+    public bool MatchesLot(DateOnly? expirationDate, TakeawayAvailability? takeawayAvailability, PackagingLevel? packagingLevel)
+    {
+        return ExpirationDate == expirationDate &&
+            TakeawayAvailability == takeawayAvailability &&
+            PackagingLevel == packagingLevel;
     }
 
     public StockMovement Receive(int quantity, string reason)
@@ -88,5 +111,62 @@ public sealed class StockItem : AggregateRoot<StockItemId>
         }
 
         return reason.Trim();
+    }
+
+    private static void ValidateLotSpecificity(
+        ArticleCategory category,
+        DateOnly? expirationDate,
+        TakeawayAvailability? takeawayAvailability,
+        PackagingLevel? packagingLevel)
+    {
+        switch (category)
+        {
+            case ArticleCategory.FoodItem:
+                if (!expirationDate.HasValue)
+                {
+                    throw new ArgumentException("Expiration date is required for food stock lots.", nameof(expirationDate));
+                }
+
+                if (!takeawayAvailability.HasValue)
+                {
+                    throw new ArgumentException("Takeaway availability is required for food stock lots.", nameof(takeawayAvailability));
+                }
+
+                if (packagingLevel.HasValue)
+                {
+                    throw new ArgumentException("Packaging level is only valid for merchandise stock lots.", nameof(packagingLevel));
+                }
+
+                if (!Enum.IsDefined(takeawayAvailability.Value))
+                {
+                    throw new ArgumentException("Takeaway availability is invalid.", nameof(takeawayAvailability));
+                }
+
+                break;
+            case ArticleCategory.Merchandise:
+                if (expirationDate.HasValue)
+                {
+                    throw new ArgumentException("Expiration date is only valid for food stock lots.", nameof(expirationDate));
+                }
+
+                if (takeawayAvailability.HasValue)
+                {
+                    throw new ArgumentException("Takeaway availability is only valid for food stock lots.", nameof(takeawayAvailability));
+                }
+
+                if (!packagingLevel.HasValue)
+                {
+                    throw new ArgumentException("Packaging level is required for merchandise stock lots.", nameof(packagingLevel));
+                }
+
+                if (!Enum.IsDefined(packagingLevel.Value))
+                {
+                    throw new ArgumentException("Packaging level is invalid.", nameof(packagingLevel));
+                }
+
+                break;
+            default:
+                throw new ArgumentException("Article category is invalid.", nameof(category));
+        }
     }
 }

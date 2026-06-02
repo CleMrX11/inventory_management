@@ -19,31 +19,6 @@ const categoryLabels: Record<Article['category'], string> = {
   Merchandise: 'Merchandise',
 }
 
-const takeawayLabels = {
-  TakeawayOnly: 'Takeaway only',
-  OnSiteOnly: 'On site only',
-  Both: 'Both',
-}
-
-const packagingLabels = {
-  New: 'New',
-  Refurbished: 'Refurbished',
-  Unsellable: 'Unsellable',
-}
-
-function formatArticleDetails(article: Article) {
-  if (article.category === 'FoodItem') {
-    const details = [article.expirationDate ? `Expires ${article.expirationDate}` : null]
-    if (article.takeawayAvailability) {
-      details.push(takeawayLabels[article.takeawayAvailability])
-    }
-
-    return details.filter(Boolean).join(' · ')
-  }
-
-  return article.packagingLevel ? packagingLabels[article.packagingLevel] : '—'
-}
-
 export function ArticleTable({
   articles,
   emptyMessage = 'No articles yet. Create the first one from the form.',
@@ -62,9 +37,7 @@ export function ArticleTable({
             <TableHead>Reference</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
-            <TableHead>Details</TableHead>
             <TableHead>Price HT</TableHead>
-            <TableHead>Price TTC</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -74,9 +47,7 @@ export function ArticleTable({
               <TableCell className="font-mono">{article.reference}</TableCell>
               <TableCell className="font-medium">{article.name}</TableCell>
               <TableCell>{categoryLabels[article.category]}</TableCell>
-              <TableCell>{formatArticleDetails(article)}</TableCell>
               <TableCell>{currencyFormatter.format(article.priceExcludingTax)}</TableCell>
-              <TableCell>{currencyFormatter.format(article.priceIncludingTax)}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" size="sm" type="button" onClick={() => onEdit(article)}>

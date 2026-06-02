@@ -8,7 +8,6 @@ public abstract class Article : AggregateRoot<ArticleId>
     public string Name { get; private set; } = string.Empty;
     public ArticleCategory Category { get; private set; }
     public Money PriceExcludingTax { get; private set; }
-    public Money PriceIncludingTax { get; private set; }
 
     protected Article()
     {
@@ -29,20 +28,14 @@ public abstract class Article : AggregateRoot<ArticleId>
         Ean13Reference reference,
         string name,
         ArticleCategory category,
-        Money priceExcludingTax,
-        DateOnly? expirationDate,
-        TakeawayAvailability? takeawayAvailability,
-        PackagingLevel? packagingLevel)
+        Money priceExcludingTax)
     {
         return Create(
             ArticleId.New(),
             reference,
             name,
             category,
-            priceExcludingTax,
-            expirationDate,
-            takeawayAvailability,
-            packagingLevel);
+            priceExcludingTax);
     }
 
     public static Article Create(
@@ -50,10 +43,7 @@ public abstract class Article : AggregateRoot<ArticleId>
         Ean13Reference reference,
         string name,
         ArticleCategory category,
-        Money priceExcludingTax,
-        DateOnly? expirationDate,
-        TakeawayAvailability? takeawayAvailability,
-        PackagingLevel? packagingLevel)
+        Money priceExcludingTax)
     {
         return category switch
         {
@@ -61,18 +51,12 @@ public abstract class Article : AggregateRoot<ArticleId>
                 id,
                 reference,
                 name,
-                priceExcludingTax,
-                expirationDate ?? throw new ArgumentException("Expiration date is required for food articles.", nameof(expirationDate)),
-                takeawayAvailability ?? throw new ArgumentException("Takeaway availability is required for food articles.", nameof(takeawayAvailability)),
-                packagingLevel),
+                priceExcludingTax),
             ArticleCategory.Merchandise => new MerchandiseArticle(
                 id,
                 reference,
                 name,
-                priceExcludingTax,
-                packagingLevel ?? throw new ArgumentException("Packaging level is required for merchandise articles.", nameof(packagingLevel)),
-                expirationDate,
-                takeawayAvailability),
+                priceExcludingTax),
             _ => throw new ArgumentException("Article category is invalid.", nameof(category)),
         };
     }
@@ -104,10 +88,17 @@ public abstract class Article : AggregateRoot<ArticleId>
         Reference = reference;
     }
 
-    protected abstract decimal Vax();
-
-    protected void RecalculatePriceIncludingTax()
+    public decimal CalculatePriceIncludingTax(TakeawayAvailability? takeawayAvailability = null)
     {
-        PriceIncludingTax = new Money(PriceExcludingTax.Amount + (Vax() * PriceExcludingTax.Amount));
+        var taxRate = Category switch
+        {
+            ArticleCategory.FoodItem => takeawayAvailability is TakeawayAvailability.TakeawayOnly or TakeawayAvailability.Both
+                ? 0.055m
+                : 0.10m,
+            ArticleCategory.Merchandise => 0.20m,
+            _ => throw new InvalidOperationException("Article category is invalid."),
+        };
+
+        return PriceExcludingTax.Amount + (taxRate * PriceExcludingTax.Amount);
     }
 }

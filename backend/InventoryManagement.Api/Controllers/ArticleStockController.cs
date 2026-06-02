@@ -38,7 +38,10 @@ public sealed class ArticleStockController : ControllerBase
                     articleId,
                     request.Type,
                     request.Quantity,
-                    request.Reason),
+                    request.Reason,
+                    request.ExpirationDate,
+                    request.TakeawayAvailability,
+                    request.PackagingLevel),
                 cancellationToken);
 
             return Ok(movement);

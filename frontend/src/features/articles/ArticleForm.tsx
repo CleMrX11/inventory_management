@@ -36,22 +36,6 @@ export function ArticleForm({
       name: String(formData.get("name") ?? "").trim(),
       category,
       priceExcludingTax: Number(formData.get("priceExcludingTax")),
-      expirationDate:
-        category === "FoodItem"
-          ? String(formData.get("expirationDate") ?? "")
-          : null,
-      takeawayAvailability:
-        category === "FoodItem"
-          ? (String(
-              formData.get("takeawayAvailability") ?? "",
-            ) as ArticlePayload["takeawayAvailability"])
-          : null,
-      packagingLevel:
-        category === "Merchandise"
-          ? (String(
-              formData.get("packagingLevel") ?? "",
-            ) as ArticlePayload["packagingLevel"])
-          : null,
     });
   }
 
@@ -108,55 +92,6 @@ export function ArticleForm({
               <option value="Merchandise">Merchandise</option>
             </select>
           </div>
-
-          {category === "FoodItem" && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="space-y-2">
-                <Label htmlFor="expirationDate">Expiration date</Label>
-                <Input
-                  id="expirationDate"
-                  name="expirationDate"
-                  type="date"
-                  defaultValue={article?.expirationDate ?? ""}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="takeawayAvailability">
-                  Takeaway availability
-                </Label>
-                <select
-                  id="takeawayAvailability"
-                  name="takeawayAvailability"
-                  defaultValue={article?.takeawayAvailability ?? "Both"}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  required
-                >
-                  <option value="TakeawayOnly">Takeaway only</option>
-                  <option value="OnSiteOnly">On site only</option>
-                  <option value="Both">Both</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {category === "Merchandise" && (
-            <div className="space-y-2">
-              <Label htmlFor="packagingLevel">Packaging level</Label>
-              <select
-                id="packagingLevel"
-                name="packagingLevel"
-                defaultValue={article?.packagingLevel ?? "New"}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                required
-              >
-                <option value="New">New</option>
-                <option value="Refurbished">Refurbished</option>
-                <option value="Unsellable">Unsellable</option>
-              </select>
-            </div>
-          )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="space-y-2">

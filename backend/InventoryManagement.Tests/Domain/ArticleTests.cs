@@ -5,67 +5,37 @@ namespace InventoryManagement.Tests.Domain;
 public sealed class ArticleTests
 {
     [Fact]
-    public void CreateFoodArticleWithTakeawayOnlyAppliesFivePercentTax()
+    public void CalculatePriceIncludingTaxUsesFoodTakeawayTax()
     {
-        var article = Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            expirationDate: new DateOnly(2026, 6, 1),
-            takeawayAvailability: TakeawayAvailability.TakeawayOnly,
-            packagingLevel: null);
+        var article = CreateFoodArticle();
 
-        Assert.Equal(new Money(4), article.PriceExcludingTax);
-        Assert.Equal(new Money(4.2m), article.PriceIncludingTax);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(TakeawayAvailability.TakeawayOnly);
+
+        Assert.Equal(4.22m, priceIncludingTax);
     }
 
     [Fact]
-    public void CreateFoodArticleWithBothAppliesFivePercentTax()
+    public void CalculatePriceIncludingTaxUsesFoodOnSiteTax()
     {
-        var article = Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            expirationDate: new DateOnly(2026, 6, 1),
-            takeawayAvailability: TakeawayAvailability.Both,
-            packagingLevel: null);
+        var article = CreateFoodArticle();
 
-        Assert.Equal(new Money(4), article.PriceExcludingTax);
-        Assert.Equal(new Money(4.2m), article.PriceIncludingTax);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(TakeawayAvailability.OnSiteOnly);
+
+        Assert.Equal(4.40m, priceIncludingTax);
     }
 
     [Fact]
-    public void CreateFoodArticleWithOnSiteOnlyAppliesTenPercentTax()
-    {
-        var article = Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            expirationDate: new DateOnly(2026, 6, 1),
-            takeawayAvailability: TakeawayAvailability.OnSiteOnly,
-            packagingLevel: null);
-
-        Assert.Equal(new Money(4), article.PriceExcludingTax);
-        Assert.Equal(new Money(4.4m), article.PriceIncludingTax);
-    }
-
-    [Fact]
-    public void CreateMerchandiseArticleAppliesTwentyPercentTax()
+    public void CalculatePriceIncludingTaxUsesMerchandiseTax()
     {
         var article = Article.Create(
             new Ean13Reference("4006381333931"),
             "Keyboard",
             ArticleCategory.Merchandise,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New);
+            new Money(100));
 
-        Assert.Equal(new Money(100), article.PriceExcludingTax);
-        Assert.Equal(new Money(120), article.PriceIncludingTax);
+        var priceIncludingTax = article.CalculatePriceIncludingTax();
+
+        Assert.Equal(120, priceIncludingTax);
     }
 
     [Fact]
@@ -75,100 +45,15 @@ public sealed class ArticleTests
             new Ean13Reference("4006381333931"),
             "Keyboard",
             (ArticleCategory)999,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New));
+            new Money(100)));
     }
 
-    [Fact]
-    public void CreateFoodArticleRejectsMissingExpirationDate()
+    private static Article CreateFoodArticle()
     {
-        Assert.Throws<ArgumentException>(() => Article.Create(
+        return Article.Create(
             new Ean13Reference("4006381333931"),
             "Sandwich",
             ArticleCategory.FoodItem,
-            new Money(4),
-            expirationDate: null,
-            takeawayAvailability: TakeawayAvailability.Both,
-            packagingLevel: null));
-    }
-
-    [Fact]
-    public void CreateFoodArticleRejectsMissingTakeawayAvailability()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            new DateOnly(2026, 6, 1),
-            takeawayAvailability: null,
-            packagingLevel: null));
-    }
-
-    [Fact]
-    public void CreateFoodArticleRejectsPackagingLevel()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            new DateOnly(2026, 6, 1),
-            TakeawayAvailability.Both,
-            PackagingLevel.New));
-    }
-
-    [Fact]
-    public void CreateFoodArticleRejectsInvalidTakeawayAvailability()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Sandwich",
-            ArticleCategory.FoodItem,
-            new Money(4),
-            new DateOnly(2026, 6, 1),
-            (TakeawayAvailability)999,
-            packagingLevel: null));
-    }
-
-    [Fact]
-    public void CreateMerchandiseArticleRejectsMissingPackagingLevel()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Keyboard",
-            ArticleCategory.Merchandise,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: null));
-    }
-
-    [Fact]
-    public void CreateMerchandiseArticleRejectsInvalidPackagingLevel()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Keyboard",
-            ArticleCategory.Merchandise,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: (PackagingLevel)999));
-    }
-
-    [Fact]
-    public void CreateMerchandiseArticleRejectsFoodSpecificFields()
-    {
-        Assert.Throws<ArgumentException>(() => Article.Create(
-            new Ean13Reference("4006381333931"),
-            "Keyboard",
-            ArticleCategory.Merchandise,
-            new Money(100),
-            new DateOnly(2026, 6, 1),
-            TakeawayAvailability.Both,
-            PackagingLevel.New));
+            new Money(4));
     }
 }

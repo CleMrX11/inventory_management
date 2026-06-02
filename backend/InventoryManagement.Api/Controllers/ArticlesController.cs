@@ -41,10 +41,7 @@ public sealed class ArticlesController : ControllerBase
                     request.Reference,
                     request.Name,
                     request.Category,
-                    request.PriceExcludingTax,
-                    request.ExpirationDate,
-                    request.TakeawayAvailability,
-                    request.PackagingLevel),
+                    request.PriceExcludingTax),
                 cancellationToken);
 
             return CreatedAtAction(nameof(GetById), new { id = article.Id }, article);
@@ -70,10 +67,7 @@ public sealed class ArticlesController : ControllerBase
                     request.Reference,
                     request.Name,
                     request.Category,
-                    request.PriceExcludingTax,
-                    request.ExpirationDate,
-                    request.TakeawayAvailability,
-                    request.PackagingLevel),
+                    request.PriceExcludingTax),
                 cancellationToken);
 
             return Ok(article);

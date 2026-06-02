@@ -8,11 +8,12 @@ namespace InventoryManagement.Infrastructure.Repositories;
 
 internal sealed class StockItemRepository(AppDbContext dbContext) : IStockItemRepository
 {
-    public Task<StockItem?> GetByArticleIdAsync(ArticleId articleId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<StockItem>> ListByArticleIdAsync(ArticleId articleId, CancellationToken cancellationToken)
     {
-        return dbContext.StockItems
+        return await dbContext.StockItems
             .Include(stockItem => stockItem.Movements)
-            .FirstOrDefaultAsync(stockItem => stockItem.ArticleId == articleId, cancellationToken);
+            .Where(stockItem => stockItem.ArticleId == articleId)
+            .ToListAsync(cancellationToken);
     }
 
     public Task<bool> ExistsForArticleAsync(ArticleId articleId, CancellationToken cancellationToken)

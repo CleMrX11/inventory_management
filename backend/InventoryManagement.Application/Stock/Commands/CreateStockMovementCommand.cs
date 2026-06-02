@@ -4,4 +4,7 @@ public sealed record CreateStockMovementCommand(
     Guid ArticleId,
     string Type,
     int Quantity,
-    string Reason);
+    string Reason,
+    string? ExpirationDate,
+    string? TakeawayAvailability,
+    string? PackagingLevel);

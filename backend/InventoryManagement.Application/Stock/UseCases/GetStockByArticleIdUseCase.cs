@@ -15,7 +15,7 @@ public sealed class GetStockByArticleIdUseCase(IArticleRepository articles, ISto
             throw new NotFoundException("Article not found.");
         }
 
-        var stockItem = await stockItems.GetByArticleIdAsync(id, cancellationToken);
-        return StockMapper.ToDto(article, stockItem);
+        var articleStockItems = await stockItems.ListByArticleIdAsync(id, cancellationToken);
+        return StockMapper.ToDto(article, articleStockItems);
     }
 }

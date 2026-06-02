@@ -5,8 +5,4 @@ public sealed record ArticleDto(
     string Reference,
     string Name,
     string Category,
-    decimal PriceExcludingTax,
-    decimal PriceIncludingTax,
-    string? ExpirationDate,
-    string? TakeawayAvailability,
-    string? PackagingLevel);
+    decimal PriceExcludingTax);

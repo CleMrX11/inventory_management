@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { listArticles } from '@/features/articles/api'
-import type { Article } from '@/features/articles/types'
+import type { Article, PackagingLevel, TakeawayAvailability } from '@/features/articles/types'
 import { cn } from '@/lib/utils'
 import { createStockMovement, getArticleStock } from './api'
 import type { Stock, StockMovement, StockMovementPayload, StockMovementType } from './types'
@@ -24,6 +24,23 @@ const movementIcons = {
   remove: Minus,
   adjust: SlidersHorizontal,
 }
+
+const takeawayLabels: Record<TakeawayAvailability, string> = {
+  TakeawayOnly: 'Takeaway only',
+  OnSiteOnly: 'On site only',
+  Both: 'Both',
+}
+
+const packagingLabels: Record<PackagingLevel, string> = {
+  New: 'New',
+  Refurbished: 'Refurbished',
+  Unsellable: 'Unsellable',
+}
+
+const currencyFormatter = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+})
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
@@ -47,6 +64,7 @@ export function StockPage() {
   )
   const selectedStock = selectedArticleId ? stockByArticleId[selectedArticleId] : null
   const SubmitIcon = movementIcons[movementType]
+  const selectedLots = selectedStock?.lots ?? []
 
   async function refreshStock(articleId: string) {
     const stock = await getArticleStock(articleId)
@@ -130,6 +148,15 @@ export function StockPage() {
       type: movementType,
       quantity: Number(formData.get('quantity')),
       reason: String(formData.get('reason') ?? '').trim(),
+      expirationDate: selectedArticle?.category === 'FoodItem'
+        ? String(formData.get('expirationDate') ?? '')
+        : null,
+      takeawayAvailability: selectedArticle?.category === 'FoodItem'
+        ? String(formData.get('takeawayAvailability') ?? 'Both') as TakeawayAvailability
+        : null,
+      packagingLevel: selectedArticle?.category === 'Merchandise'
+        ? String(formData.get('packagingLevel') ?? 'New') as PackagingLevel
+        : null,
     }
 
     setIsSaving(true)
@@ -268,7 +295,7 @@ export function StockPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">{movementType === 'adjust' ? 'Quantity after adjustment' : 'Quantity'}</Label>
+                  <Label htmlFor="quantity">{movementType === 'adjust' ? 'Lot quantity after adjustment' : 'Quantity'}</Label>
                   <Input
                     id="quantity"
                     name="quantity"
@@ -279,6 +306,55 @@ export function StockPage() {
                     disabled={!selectedArticle || isSaving}
                   />
                 </div>
+
+                {selectedArticle?.category === 'FoodItem' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="expirationDate">DLC</Label>
+                      <Input
+                        id="expirationDate"
+                        name="expirationDate"
+                        type="date"
+                        required
+                        disabled={!selectedArticle || isSaving}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="takeawayAvailability">Takeaway availability</Label>
+                      <select
+                        id="takeawayAvailability"
+                        name="takeawayAvailability"
+                        defaultValue="Both"
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        disabled={!selectedArticle || isSaving}
+                        required
+                      >
+                        <option value="TakeawayOnly">Takeaway only</option>
+                        <option value="OnSiteOnly">On site only</option>
+                        <option value="Both">Both</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {selectedArticle?.category === 'Merchandise' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="packagingLevel">Packaging level</Label>
+                    <select
+                      id="packagingLevel"
+                      name="packagingLevel"
+                      defaultValue="New"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      disabled={!selectedArticle || isSaving}
+                      required
+                    >
+                      <option value="New">New</option>
+                      <option value="Refurbished">Refurbished</option>
+                      <option value="Unsellable">Unsellable</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="reason">Reason</Label>
@@ -322,6 +398,47 @@ export function StockPage() {
                     <dd className="font-medium">{lastMovement.reason}</dd>
                   </div>
                 </dl>
+              </CardContent>
+            </Card>
+          )}
+
+          {selectedArticle && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Lots</CardTitle>
+                <CardDescription>{selectedLots.length} lot{selectedLots.length > 1 ? 's' : ''} for this article.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {selectedLots.length === 0 ? (
+                  <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">No stock lots yet.</p>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Lot</TableHead>
+                          <TableHead className="text-right">Qty</TableHead>
+                          <TableHead className="text-right">Sellable</TableHead>
+                          <TableHead className="text-right">TTC</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedLots.map((lot) => (
+                          <TableRow key={lot.id}>
+                            <TableCell>
+                              {selectedArticle.category === 'FoodItem'
+                                ? `${lot.expirationDate ?? '-'} · ${lot.takeawayAvailability ? takeawayLabels[lot.takeawayAvailability] : '-'}`
+                                : lot.packagingLevel ? packagingLabels[lot.packagingLevel] : '-'}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">{lot.currentQuantity}</TableCell>
+                            <TableCell className="text-right tabular-nums">{lot.sellableQuantity}</TableCell>
+                            <TableCell className="text-right tabular-nums">{currencyFormatter.format(lot.priceIncludingTax)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

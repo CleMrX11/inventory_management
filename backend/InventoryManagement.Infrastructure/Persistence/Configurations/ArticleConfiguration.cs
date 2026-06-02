@@ -43,9 +43,5 @@ internal sealed class ArticleConfiguration : IEntityTypeConfiguration<Article>
             .HasPrecision(12, 2)
             .IsRequired();
 
-        builder.Property(article => article.PriceIncludingTax)
-            .HasConversion(price => price.Amount, amount => new Money(amount))
-            .HasPrecision(12, 2)
-            .IsRequired();
     }
 }

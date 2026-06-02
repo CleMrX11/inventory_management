@@ -5,7 +5,4 @@ public sealed record UpdateArticleCommand(
     string Reference,
     string Name,
     string Category,
-    decimal PriceExcludingTax,
-    string? ExpirationDate,
-    string? TakeawayAvailability,
-    string? PackagingLevel);
+    decimal PriceExcludingTax);

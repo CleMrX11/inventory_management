@@ -8,8 +8,5 @@ internal sealed class MerchandiseArticleConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<MerchandiseArticle> builder)
     {
-        builder.Property(article => article.PackagingLevel)
-            .HasConversion<string>()
-            .HasMaxLength(30);
     }
 }

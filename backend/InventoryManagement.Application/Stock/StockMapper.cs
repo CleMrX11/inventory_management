@@ -5,38 +5,64 @@ namespace InventoryManagement.Application.Stock;
 
 internal static class StockMapper
 {
-    public static StockDto ToDto(Article article, StockItem? stockItem)
+    public static StockDto ToDto(Article article, IReadOnlyCollection<StockItem> stockItems)
     {
-        var currentQuantity = stockItem?.CurrentQuantity ?? 0;
-        var sellableQuantity = CalculateSellableQuantity(article, currentQuantity);
-        var movements = stockItem?.Movements
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var lots = stockItems
+            .OrderBy(stockItem => stockItem.ExpirationDate)
+            .ThenBy(stockItem => stockItem.PackagingLevel)
+            .Select(stockItem => ToLotDto(article, stockItem, today))
+            .ToList();
+        var movements = stockItems
+            .SelectMany(stockItem => stockItem.Movements.Select(movement => ToDto(stockItem, movement)))
             .OrderByDescending(movement => movement.OccurredAt)
-            .Select(movement => ToDto(stockItem, movement))
-            .ToList() ?? [];
+            .ToList();
 
-        return new StockDto(article.Id.Value, currentQuantity, sellableQuantity, movements);
+        return new StockDto(
+            article.Id.Value,
+            lots.Sum(lot => lot.CurrentQuantity),
+            lots.Sum(lot => lot.SellableQuantity),
+            lots,
+            movements);
     }
 
     public static StockMovementDto ToDto(StockItem stockItem, StockMovement movement)
     {
         return new StockMovementDto(
             movement.Id.Value,
+            stockItem.Id.Value,
             stockItem.ArticleId.Value,
             StockMovementTypeParser.ToDtoValue(movement.Type),
             movement.Quantity,
             movement.QuantityBefore,
             movement.QuantityAfter,
             movement.Reason,
-            movement.OccurredAt);
+            movement.OccurredAt,
+            stockItem.ExpirationDate?.ToString("yyyy-MM-dd"),
+            stockItem.TakeawayAvailability?.ToString(),
+            stockItem.PackagingLevel?.ToString());
     }
 
-    private static int CalculateSellableQuantity(Article article, int currentQuantity)
+    private static StockLotDto ToLotDto(Article article, StockItem stockItem, DateOnly today)
     {
-        if (article is MerchandiseArticle { PackagingLevel: PackagingLevel.Unsellable })
-        {
-            return 0;
-        }
+        return new StockLotDto(
+            stockItem.Id.Value,
+            stockItem.ArticleId.Value,
+            stockItem.CurrentQuantity,
+            CalculateSellableQuantity(article, stockItem, today),
+            stockItem.ExpirationDate?.ToString("yyyy-MM-dd"),
+            stockItem.TakeawayAvailability?.ToString(),
+            stockItem.PackagingLevel?.ToString(),
+            article.CalculatePriceIncludingTax(stockItem.TakeawayAvailability));
+    }
 
-        return currentQuantity;
+    private static int CalculateSellableQuantity(Article article, StockItem stockItem, DateOnly today)
+    {
+        return article.Category switch
+        {
+            ArticleCategory.Merchandise when stockItem.PackagingLevel == PackagingLevel.Unsellable => 0,
+            ArticleCategory.FoodItem when stockItem.ExpirationDate < today => 0,
+            _ => stockItem.CurrentQuantity,
+        };
     }
 }

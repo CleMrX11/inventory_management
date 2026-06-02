@@ -19,10 +19,7 @@ public sealed class CreateArticleUseCase(IArticleRepository articles, IUnitOfWor
             reference,
             command.Name,
             ArticleCategoryParser.Parse(command.Category),
-            new Money(command.PriceExcludingTax),
-            ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate),
-            ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability),
-            ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel));
+            new Money(command.PriceExcludingTax));
 
         articles.Add(article);
         await unitOfWork.SaveChangesAsync(cancellationToken);

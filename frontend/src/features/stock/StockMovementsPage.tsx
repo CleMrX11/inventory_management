@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getArticle } from '@/features/articles/api'
-import type { Article } from '@/features/articles/types'
+import type { Article, PackagingLevel, TakeawayAvailability } from '@/features/articles/types'
 import { cn } from '@/lib/utils'
 import { getArticleStock } from './api'
 import type { Stock, StockMovementType } from './types'
@@ -15,6 +15,18 @@ const movementLabels: Record<StockMovementType, string> = {
   receive: 'Receive',
   remove: 'Remove',
   adjust: 'Adjust',
+}
+
+const takeawayLabels: Record<TakeawayAvailability, string> = {
+  TakeawayOnly: 'Takeaway only',
+  OnSiteOnly: 'On site only',
+  Both: 'Both',
+}
+
+const packagingLabels: Record<PackagingLevel, string> = {
+  New: 'New',
+  Refurbished: 'Refurbished',
+  Unsellable: 'Unsellable',
 }
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
@@ -127,6 +139,7 @@ export function StockMovementsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
+                    <TableHead>Lot</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead className="text-right">Before</TableHead>
@@ -138,6 +151,11 @@ export function StockMovementsPage() {
                   {movements.map((movement) => (
                     <TableRow key={movement.id}>
                       <TableCell className="whitespace-nowrap">{dateFormatter.format(new Date(movement.occurredAt))}</TableCell>
+                      <TableCell>
+                        {article?.category === 'FoodItem'
+                          ? `${movement.expirationDate ?? '-'} · ${movement.takeawayAvailability ? takeawayLabels[movement.takeawayAvailability] : '-'}`
+                          : movement.packagingLevel ? packagingLabels[movement.packagingLevel] : '-'}
+                      </TableCell>
                       <TableCell>{movementLabels[movement.type]}</TableCell>
                       <TableCell className="text-right tabular-nums">{movement.quantity}</TableCell>
                       <TableCell className="text-right tabular-nums">{movement.quantityBefore}</TableCell>

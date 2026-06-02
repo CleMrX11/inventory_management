@@ -8,7 +8,7 @@ namespace InventoryManagement.Tests.Application;
 public sealed class ArticleUseCaseTests
 {
     [Fact]
-    public async Task CreateFoodArticleMapsFoodFields()
+    public async Task CreateFoodArticleMapsProductFields()
     {
         var useCase = new CreateArticleUseCase(new InMemoryArticleRepository(), new NoOpUnitOfWork());
 
@@ -17,21 +17,15 @@ public sealed class ArticleUseCaseTests
                 "4006381333931",
                 "Sandwich",
                 "FoodItem",
-                4,
-                "2026-06-30",
-                "Both",
-                PackagingLevel: null),
+                4),
             CancellationToken.None);
 
         Assert.Equal("FoodItem", article.Category);
-        Assert.Equal(4.2m, article.PriceIncludingTax);
-        Assert.Equal("2026-06-30", article.ExpirationDate);
-        Assert.Equal("Both", article.TakeawayAvailability);
-        Assert.Null(article.PackagingLevel);
+        Assert.Equal(4, article.PriceExcludingTax);
     }
 
     [Fact]
-    public async Task CreateMerchandiseArticleMapsPackagingLevel()
+    public async Task CreateMerchandiseArticleMapsProductFields()
     {
         var useCase = new CreateArticleUseCase(new InMemoryArticleRepository(), new NoOpUnitOfWork());
 
@@ -40,17 +34,11 @@ public sealed class ArticleUseCaseTests
                 "4006381333931",
                 "Keyboard",
                 "Merchandise",
-                100,
-                null,
-                null,
-                "Refurbished"),
+                100),
             CancellationToken.None);
 
         Assert.Equal("Merchandise", article.Category);
-        Assert.Equal(120, article.PriceIncludingTax);
-        Assert.Equal("Refurbished", article.PackagingLevel);
-        Assert.Null(article.ExpirationDate);
-        Assert.Null(article.TakeawayAvailability);
+        Assert.Equal(100, article.PriceExcludingTax);
     }
 
     [Fact]
@@ -116,10 +104,7 @@ public sealed class ArticleUseCaseTests
             new Ean13Reference(reference),
             name,
             ArticleCategory.Merchandise,
-            new Money(100),
-            expirationDate: null,
-            takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New);
+            new Money(100));
     }
 
     private sealed class NoOpUnitOfWork : IUnitOfWork

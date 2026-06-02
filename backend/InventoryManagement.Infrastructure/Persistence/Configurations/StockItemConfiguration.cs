@@ -2,6 +2,7 @@ using InventoryManagement.Domain.Articles;
 using InventoryManagement.Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Globalization;
 
 namespace InventoryManagement.Infrastructure.Persistence.Configurations;
 
@@ -21,7 +22,21 @@ internal sealed class StockItemConfiguration : IEntityTypeConfiguration<StockIte
             .HasConversion(id => id.Value, value => new ArticleId(value))
             .IsRequired();
 
-        builder.HasIndex(stockItem => stockItem.ArticleId).IsUnique();
+        builder.HasIndex(stockItem => stockItem.ArticleId);
+
+        builder.Property(stockItem => stockItem.ExpirationDate)
+            .HasConversion(
+                value => value.HasValue ? value.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : null,
+                value => value == null ? null : DateOnly.Parse(value, CultureInfo.InvariantCulture))
+            .HasMaxLength(10);
+
+        builder.Property(stockItem => stockItem.TakeawayAvailability)
+            .HasConversion<string>()
+            .HasMaxLength(30);
+
+        builder.Property(stockItem => stockItem.PackagingLevel)
+            .HasConversion<string>()
+            .HasMaxLength(30);
 
         builder.Property(stockItem => stockItem.CurrentQuantity)
             .IsRequired();
