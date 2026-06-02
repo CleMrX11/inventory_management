@@ -67,8 +67,45 @@ export function StockMovementsPage() {
   }, [articleId])
 
   useEffect(() => {
-    refreshPage()
-  }, [refreshPage])
+    let ignore = false
+
+    async function load() {
+      if (!articleId) {
+        setError('Article id is missing.')
+        setIsLoading(false)
+        return
+      }
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const [loadedArticle, loadedStock] = await Promise.all([
+          getArticle(articleId),
+          getArticleStock(articleId),
+        ])
+
+        if (!ignore) {
+          setArticle(loadedArticle)
+          setStock(loadedStock)
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : 'Unable to load article movements')
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    load()
+
+    return () => {
+      ignore = true
+    }
+  }, [articleId])
 
   const movements = stock?.movements ?? []
 

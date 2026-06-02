@@ -114,6 +114,26 @@ public sealed class StockUseCaseTests
     }
 
     [Fact]
+    public async Task CreateStockMovementRejectsRemoveWhenLotDoesNotExist()
+    {
+        var article = CreateMerchandiseArticle();
+        var stockItems = new InMemoryStockItemRepository();
+        var unitOfWork = new CountingUnitOfWork();
+        var useCase = new CreateStockMovementUseCase(
+            new InMemoryArticleRepository(article),
+            stockItems,
+            unitOfWork);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => useCase.ExecuteAsync(
+            new CreateStockMovementCommand(article.Id.Value, "remove", 1, "Customer order", null, null, "New"),
+            CancellationToken.None));
+
+        var persistedLots = await stockItems.ListByArticleIdAsync(article.Id, CancellationToken.None);
+        Assert.Empty(persistedLots);
+        Assert.Equal(0, unitOfWork.SaveChangesCalls);
+    }
+
+    [Fact]
     public async Task CreateStockMovementRejectsUnknownArticle()
     {
         var useCase = new CreateStockMovementUseCase(

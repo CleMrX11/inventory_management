@@ -24,16 +24,21 @@ public sealed class CreateStockMovementUseCase(
         var expirationDate = ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate);
         var takeawayAvailability = ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability);
         var packagingLevel = ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel);
+        var movementType = StockMovementTypeParser.Parse(command.Type);
         var articleStockItems = await stockItems.ListByArticleIdAsync(articleId, cancellationToken);
         var stockItem = articleStockItems.SingleOrDefault(item =>
             item.MatchesLot(expirationDate, takeawayAvailability, packagingLevel));
         if (stockItem is null)
         {
+            if (movementType is not StockMovementType.Receive)
+            {
+                throw new InvalidOperationException("Stock lot not found for this movement.");
+            }
+
             stockItem = StockItem.Create(article, expirationDate, takeawayAvailability, packagingLevel);
             stockItems.Add(stockItem);
         }
 
-        var movementType = StockMovementTypeParser.Parse(command.Type);
         var movement = movementType switch
         {
             StockMovementType.Receive => stockItem.Receive(command.Quantity, command.Reason),
