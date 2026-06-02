@@ -36,8 +36,8 @@ Le frontend est construit avec React, React Router, shadcn/ui et Tailwind CSS po
 - Les lots de stock sont identifiés par leurs spécificités métier : DLC et disponibilité à emporter pour les produits alimentaires, niveau de packaging pour les marchandises.
 - L'UI reste volontairement simple pour l'exercice, avec une navigation Articles / Stock / Historique.
 
-Simplification pour le projet qui devrait être en placa dans le cas d'une app en production:
-- Pas de gestion d'authentification ni des authorisations.
+Simplifications pour le projet, qui devraient être revues dans le cas d'une app en production :
+- Pas de gestion d'authentification ni des autorisations.
 - Pas de migration de données, la base SQLite est créée automatiquement au lancement.
 - Pas de test pour le frontend.
 
@@ -50,7 +50,7 @@ Simplification pour le projet qui devrait être en placa dans le cas d'une app e
 
 - IA utilisée : ChatGPT 5.5 pour le raisonnement complexe et ChatGPT 5.4 Mini pour les tâches simples.
 - Outil principal : Codex CLI.
-- Usages : aide à la conception, génération de code, revue de cide, corrections ciblées.
+- Usages : aide à la conception, génération de code, revue de code, corrections ciblées.
 - Organisation : parallélisation de certaines features avec des worktrees Git pour avancer sur plusieurs sujets en même temps.
 
 ## Temps passé
@@ -58,6 +58,11 @@ Simplification pour le projet qui devrait être en placa dans le cas d'une app e
 Environ 5 heures.
 
 ## Lancer le projet
+
+Prérequis :
+
+- .NET SDK 10.
+- Node.js et npm.
 
 Installer les dépendances frontend une première fois :
 
