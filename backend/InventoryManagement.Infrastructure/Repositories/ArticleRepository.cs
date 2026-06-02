@@ -7,10 +7,20 @@ namespace InventoryManagement.Infrastructure.Repositories;
 
 internal sealed class ArticleRepository(AppDbContext dbContext) : IArticleRepository
 {
-    public async Task<IReadOnlyList<Article>> ListAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Article>> ListAsync(string? nameSearch, CancellationToken cancellationToken)
     {
-        return await dbContext.Articles
+        var query = dbContext.Articles
             .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nameSearch))
+        {
+            var searchPattern = $"%{EscapeLikePattern(nameSearch.Trim())}%";
+            query = query.Where(article =>
+                EF.Functions.Like(EF.Functions.Collate(article.Name, "NOCASE"), searchPattern, "\\"));
+        }
+
+        return await query
             .OrderBy(article => article.Name)
             .ToListAsync(cancellationToken);
     }
@@ -41,5 +51,13 @@ internal sealed class ArticleRepository(AppDbContext dbContext) : IArticleReposi
     public void Remove(Article article)
     {
         dbContext.Articles.Remove(article);
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
     }
 }

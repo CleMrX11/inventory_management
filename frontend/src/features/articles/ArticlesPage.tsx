@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ArticleForm } from "./ArticleForm";
 import { ArticleTable } from "./ArticleTable";
 import {
@@ -25,13 +27,14 @@ export function ArticlesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formVersion, setFormVersion] = useState(0);
+  const [search, setSearch] = useState("");
 
   async function refreshArticles() {
     setIsLoading(true);
     setError(null);
 
     try {
-      setArticles(await listArticles());
+      setArticles(await listArticles(search));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load articles");
     } finally {
@@ -42,29 +45,35 @@ export function ArticlesPage() {
   useEffect(() => {
     let ignore = false;
 
-    listArticles()
-      .then((data) => {
-        if (!ignore) {
-          setArticles(data);
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setError(
-            err instanceof Error ? err.message : "Unable to load articles",
-          );
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      });
+    const timeoutId = window.setTimeout(() => {
+      setIsLoading(true);
+      setError(null);
+
+      listArticles(search)
+        .then((data) => {
+          if (!ignore) {
+            setArticles(data);
+          }
+        })
+        .catch((err) => {
+          if (!ignore) {
+            setError(
+              err instanceof Error ? err.message : "Unable to load articles",
+            );
+          }
+        })
+        .finally(() => {
+          if (!ignore) {
+            setIsLoading(false);
+          }
+        });
+    }, 300);
 
     return () => {
       ignore = true;
+      window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [search]);
 
   async function handleSubmit(payload: ArticlePayload) {
     setIsSaving(true);
@@ -146,6 +155,23 @@ export function ArticlesPage() {
               {articles.length} article{articles.length > 1 ? "s" : ""} in
               inventory.
             </CardDescription>
+            <div className="relative max-w-sm pt-2">
+              <Search
+                className="pointer-events-none absolute left-3 top-[1.125rem] h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <label htmlFor="article-search" className="sr-only">
+                Search articles by name
+              </label>
+              <Input
+                id="article-search"
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by name"
+                className="pl-9"
+              />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -155,6 +181,11 @@ export function ArticlesPage() {
             ) : (
               <ArticleTable
                 articles={articles}
+                emptyMessage={
+                  search.trim()
+                    ? "No articles match this search."
+                    : "No articles yet. Create the first one from the form."
+                }
                 onEdit={setSelectedArticle}
                 onDelete={handleDelete}
               />

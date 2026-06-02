@@ -11,9 +11,9 @@ namespace InventoryManagement.Api.Controllers;
 public sealed class ArticlesController : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> List(ListArticlesUseCase useCase, CancellationToken cancellationToken)
+    public async Task<IActionResult> List([FromQuery] string? search, ListArticlesUseCase useCase, CancellationToken cancellationToken)
     {
-        var articles = await useCase.ExecuteAsync(cancellationToken);
+        var articles = await useCase.ExecuteAsync(search, cancellationToken);
         return Ok(articles);
     }
 

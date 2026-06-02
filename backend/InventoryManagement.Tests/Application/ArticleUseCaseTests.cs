@@ -53,13 +53,33 @@ public sealed class ArticleUseCaseTests
         Assert.Null(article.TakeawayAvailability);
     }
 
+    [Fact]
+    public async Task ListArticlesSearchesByName()
+    {
+        var repository = new InMemoryArticleRepository();
+        repository.Add(CreateArticle("4006381333931", "Keyboard"));
+        repository.Add(CreateArticle("5901234123457", "Mouse"));
+        var useCase = new ListArticlesUseCase(repository);
+
+        var articles = await useCase.ExecuteAsync("key", CancellationToken.None);
+
+        Assert.Single(articles);
+        Assert.Equal("Keyboard", articles[0].Name);
+    }
+
     private sealed class InMemoryArticleRepository : IArticleRepository
     {
         private readonly List<Article> articles = [];
 
-        public Task<IReadOnlyList<Article>> ListAsync(CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Article>> ListAsync(string? nameSearch, CancellationToken cancellationToken)
         {
-            return Task.FromResult<IReadOnlyList<Article>>(articles);
+            var result = articles.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(nameSearch))
+            {
+                result = result.Where(article => article.Name.Contains(nameSearch.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            return Task.FromResult<IReadOnlyList<Article>>(result.ToList());
         }
 
         public Task<Article?> GetByIdAsync(ArticleId id, CancellationToken cancellationToken)
@@ -88,6 +108,18 @@ public sealed class ArticleUseCaseTests
         {
             articles.Remove(article);
         }
+    }
+
+    private static Article CreateArticle(string reference, string name)
+    {
+        return Article.Create(
+            new Ean13Reference(reference),
+            name,
+            ArticleCategory.Merchandise,
+            new Money(100),
+            expirationDate: null,
+            takeawayAvailability: null,
+            packagingLevel: PackagingLevel.New);
     }
 
     private sealed class NoOpUnitOfWork : IUnitOfWork

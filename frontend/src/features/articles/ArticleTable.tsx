@@ -4,6 +4,7 @@ import type { Article } from './types'
 
 type ArticleTableProps = {
   articles: Article[]
+  emptyMessage?: string
   onEdit: (article: Article) => void
   onDelete: (article: Article) => void
 }
@@ -43,9 +44,14 @@ function formatArticleDetails(article: Article) {
   return article.packagingLevel ? packagingLabels[article.packagingLevel] : '—'
 }
 
-export function ArticleTable({ articles, onEdit, onDelete }: ArticleTableProps) {
+export function ArticleTable({
+  articles,
+  emptyMessage = 'No articles yet. Create the first one from the form.',
+  onEdit,
+  onDelete,
+}: ArticleTableProps) {
   if (articles.length === 0) {
-    return <p className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">No articles yet. Create the first one from the form.</p>
+    return <p className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">{emptyMessage}</p>
   }
 
   return (

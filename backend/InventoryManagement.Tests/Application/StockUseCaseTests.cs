@@ -152,7 +152,7 @@ public sealed class StockUseCaseTests
     {
         private readonly List<Article> articles = [.. initialArticles];
 
-        public Task<IReadOnlyList<Article>> ListAsync(CancellationToken cancellationToken)
+        public Task<IReadOnlyList<Article>> ListAsync(string? nameSearch, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<Article>>(articles);
         }

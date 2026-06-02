@@ -23,8 +23,13 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return response.json()
 }
 
-export function listArticles(): Promise<Article[]> {
-  return request<Article[]>(articlesUrl)
+export function listArticles(search?: string): Promise<Article[]> {
+  const trimmedSearch = search?.trim()
+  const url = trimmedSearch
+    ? `${articlesUrl}?${new URLSearchParams({ search: trimmedSearch })}`
+    : articlesUrl
+
+  return request<Article[]>(url)
 }
 
 export function getArticle(id: string): Promise<Article> {

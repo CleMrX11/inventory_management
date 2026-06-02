@@ -4,7 +4,7 @@ namespace InventoryManagement.Application.Abstractions;
 
 public interface IArticleRepository
 {
-    Task<IReadOnlyList<Article>> ListAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<Article>> ListAsync(string? nameSearch, CancellationToken cancellationToken);
     Task<Article?> GetByIdAsync(ArticleId id, CancellationToken cancellationToken);
     Task<bool> ExistsByReferenceAsync(Ean13Reference reference, ArticleId? excludedArticleId, CancellationToken cancellationToken);
     void Add(Article article);
