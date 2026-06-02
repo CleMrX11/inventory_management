@@ -9,14 +9,13 @@ public sealed class GetStockByArticleIdUseCase(IArticleRepository articles, ISto
     public async Task<StockDto> ExecuteAsync(Guid articleId, CancellationToken cancellationToken)
     {
         var id = new ArticleId(articleId);
-        if (await articles.GetByIdAsync(id, cancellationToken) is null)
+        var article = await articles.GetByIdAsync(id, cancellationToken);
+        if (article is null)
         {
             throw new NotFoundException("Article not found.");
         }
 
         var stockItem = await stockItems.GetByArticleIdAsync(id, cancellationToken);
-        return stockItem is null
-            ? new StockDto(articleId, CurrentQuantity: 0)
-            : StockMapper.ToDto(stockItem);
+        return StockMapper.ToDto(article, stockItem);
     }
 }

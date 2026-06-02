@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Check, Minus, PackageSearch, Plus, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,6 +31,7 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
 })
 
 export function StockPage() {
+  const navigate = useNavigate()
   const [articles, setArticles] = useState<Article[]>([])
   const [stockByArticleId, setStockByArticleId] = useState<Record<string, Stock>>({})
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null)
@@ -149,6 +151,7 @@ export function StockPage() {
     setSelectedArticleId(articleId)
     setLastMovement(null)
     setError(null)
+    navigate(`/stock/${articleId}/movements`)
   }
 
   return (
@@ -189,6 +192,7 @@ export function StockPage() {
                       <TableHead>Reference</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead className="text-right">Current quantity</TableHead>
+                      <TableHead className="text-right">Sellable</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -198,11 +202,18 @@ export function StockPage() {
                       const isSelected = article.id === selectedArticleId
 
                       return (
-                        <TableRow key={article.id} className={cn(isSelected && 'bg-muted/50')}>
+                        <TableRow
+                          key={article.id}
+                          className={cn('cursor-pointer', isSelected && 'bg-muted/50')}
+                          onClick={() => handleSelectArticle(article.id)}
+                        >
                           <TableCell className="font-mono">{article.reference}</TableCell>
                           <TableCell className="font-medium">{article.name}</TableCell>
                           <TableCell className="text-right text-lg font-semibold tabular-nums">
                             {stock?.currentQuantity ?? 0}
+                          </TableCell>
+                          <TableCell className="text-right text-lg font-semibold tabular-nums">
+                            {stock?.sellableQuantity ?? 0}
                           </TableCell>
                           <TableCell>
                             <div className="flex justify-end">

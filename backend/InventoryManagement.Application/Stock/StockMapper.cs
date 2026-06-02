@@ -1,12 +1,20 @@
+using InventoryManagement.Domain.Articles;
 using InventoryManagement.Domain.Stock;
 
 namespace InventoryManagement.Application.Stock;
 
 internal static class StockMapper
 {
-    public static StockDto ToDto(StockItem stockItem)
+    public static StockDto ToDto(Article article, StockItem? stockItem)
     {
-        return new StockDto(stockItem.ArticleId.Value, stockItem.CurrentQuantity);
+        var currentQuantity = stockItem?.CurrentQuantity ?? 0;
+        var sellableQuantity = CalculateSellableQuantity(article, currentQuantity);
+        var movements = stockItem?.Movements
+            .OrderByDescending(movement => movement.OccurredAt)
+            .Select(movement => ToDto(stockItem, movement))
+            .ToList() ?? [];
+
+        return new StockDto(article.Id.Value, currentQuantity, sellableQuantity, movements);
     }
 
     public static StockMovementDto ToDto(StockItem stockItem, StockMovement movement)
@@ -20,5 +28,15 @@ internal static class StockMapper
             movement.QuantityAfter,
             movement.Reason,
             movement.OccurredAt);
+    }
+
+    private static int CalculateSellableQuantity(Article article, int currentQuantity)
+    {
+        if (article is MerchandiseArticle { PackagingLevel: PackagingLevel.Unsellable })
+        {
+            return 0;
+        }
+
+        return currentQuantity;
     }
 }

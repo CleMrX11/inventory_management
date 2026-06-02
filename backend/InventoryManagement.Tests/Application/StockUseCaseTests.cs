@@ -22,6 +22,55 @@ public sealed class StockUseCaseTests
 
         Assert.Equal(article.Id.Value, stock.ArticleId);
         Assert.Equal(0, stock.CurrentQuantity);
+        Assert.Equal(0, stock.SellableQuantity);
+        Assert.Empty(stock.Movements);
+    }
+
+    [Fact]
+    public async Task GetStockReturnsMovementHistory()
+    {
+        var article = CreateMerchandiseArticle();
+        var stockItem = StockItem.Create(article.Id);
+        stockItem.Receive(10, "Supplier delivery");
+        stockItem.Remove(3, "Damaged");
+        var useCase = new GetStockByArticleIdUseCase(
+            new InMemoryArticleRepository(article),
+            new InMemoryStockItemRepository(stockItem));
+
+        var stock = await useCase.ExecuteAsync(article.Id.Value, CancellationToken.None);
+
+        Assert.Equal(7, stock.CurrentQuantity);
+        Assert.Equal(7, stock.SellableQuantity);
+        Assert.Collection(
+            stock.Movements.OrderBy(movement => movement.QuantityBefore),
+            movement =>
+            {
+                Assert.Equal("receive", movement.Type);
+                Assert.Equal(0, movement.QuantityBefore);
+                Assert.Equal(10, movement.QuantityAfter);
+            },
+            movement =>
+            {
+                Assert.Equal("remove", movement.Type);
+                Assert.Equal(10, movement.QuantityBefore);
+                Assert.Equal(7, movement.QuantityAfter);
+            });
+    }
+
+    [Fact]
+    public async Task GetStockReturnsNoSellableQuantityForUnsellableMerchandise()
+    {
+        var article = CreateMerchandiseArticle(PackagingLevel.Unsellable);
+        var stockItem = StockItem.Create(article.Id);
+        stockItem.Receive(10, "Supplier delivery");
+        var useCase = new GetStockByArticleIdUseCase(
+            new InMemoryArticleRepository(article),
+            new InMemoryStockItemRepository(stockItem));
+
+        var stock = await useCase.ExecuteAsync(article.Id.Value, CancellationToken.None);
+
+        Assert.Equal(10, stock.CurrentQuantity);
+        Assert.Equal(0, stock.SellableQuantity);
     }
 
     [Fact]
@@ -87,7 +136,7 @@ public sealed class StockUseCaseTests
         await Assert.ThrowsAsync<ConflictException>(() => useCase.ExecuteAsync(article.Id.Value, CancellationToken.None));
     }
 
-    private static Article CreateMerchandiseArticle()
+    private static Article CreateMerchandiseArticle(PackagingLevel packagingLevel = PackagingLevel.New)
     {
         return Article.Create(
             new Ean13Reference("4006381333931"),
@@ -96,7 +145,7 @@ public sealed class StockUseCaseTests
             new Money(100),
             expirationDate: null,
             takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New);
+            packagingLevel: packagingLevel);
     }
 
     private sealed class InMemoryArticleRepository(params Article[] initialArticles) : IArticleRepository

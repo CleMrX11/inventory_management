@@ -3,6 +3,8 @@ export type StockMovementType = 'receive' | 'remove' | 'adjust'
 export type Stock = {
   articleId: string
   currentQuantity: number
+  sellableQuantity: number
+  movements: StockMovement[]
 }
 
 export type StockMovementPayload = {

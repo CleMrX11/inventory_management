@@ -27,6 +27,10 @@ export function listArticles(): Promise<Article[]> {
   return request<Article[]>(articlesUrl)
 }
 
+export function getArticle(id: string): Promise<Article> {
+  return request<Article>(`${articlesUrl}/${id}`)
+}
+
 export function createArticle(payload: ArticlePayload): Promise<Article> {
   return request<Article>(articlesUrl, {
     method: 'POST',
