@@ -94,7 +94,6 @@ public sealed class StockUseCaseTests
             "Keyboard",
             ArticleCategory.Merchandise,
             new Money(100),
-            new Money(120),
             expirationDate: null,
             takeawayAvailability: null,
             packagingLevel: PackagingLevel.New);

@@ -19,11 +19,10 @@ public abstract class Article : AggregateRoot<ArticleId>
         Ean13Reference reference,
         string name,
         ArticleCategory category,
-        Money priceExcludingTax,
-        Money priceIncludingTax) : base(id)
+        Money priceExcludingTax) : base(id)
     {
         Reference = reference;
-        Update(name, category, priceExcludingTax, priceIncludingTax);
+        Update(name, category, priceExcludingTax);
     }
 
     public static Article Create(
@@ -31,7 +30,6 @@ public abstract class Article : AggregateRoot<ArticleId>
         string name,
         ArticleCategory category,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         DateOnly? expirationDate,
         TakeawayAvailability? takeawayAvailability,
         PackagingLevel? packagingLevel)
@@ -42,7 +40,6 @@ public abstract class Article : AggregateRoot<ArticleId>
             name,
             category,
             priceExcludingTax,
-            priceIncludingTax,
             expirationDate,
             takeawayAvailability,
             packagingLevel);
@@ -54,7 +51,6 @@ public abstract class Article : AggregateRoot<ArticleId>
         string name,
         ArticleCategory category,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         DateOnly? expirationDate,
         TakeawayAvailability? takeawayAvailability,
         PackagingLevel? packagingLevel)
@@ -66,7 +62,6 @@ public abstract class Article : AggregateRoot<ArticleId>
                 reference,
                 name,
                 priceExcludingTax,
-                priceIncludingTax,
                 expirationDate ?? throw new ArgumentException("Expiration date is required for food articles.", nameof(expirationDate)),
                 takeawayAvailability ?? throw new ArgumentException("Takeaway availability is required for food articles.", nameof(takeawayAvailability)),
                 packagingLevel),
@@ -75,7 +70,6 @@ public abstract class Article : AggregateRoot<ArticleId>
                 reference,
                 name,
                 priceExcludingTax,
-                priceIncludingTax,
                 packagingLevel ?? throw new ArgumentException("Packaging level is required for merchandise articles.", nameof(packagingLevel)),
                 expirationDate,
                 takeawayAvailability),
@@ -83,12 +77,12 @@ public abstract class Article : AggregateRoot<ArticleId>
         };
     }
 
-    public void UpdateCommon(string name, Money priceExcludingTax, Money priceIncludingTax)
+    public void UpdateCommon(string name, Money priceExcludingTax)
     {
-        Update(name, Category, priceExcludingTax, priceIncludingTax);
+        Update(name, Category, priceExcludingTax);
     }
 
-    private void Update(string name, ArticleCategory category, Money priceExcludingTax, Money priceIncludingTax)
+    private void Update(string name, ArticleCategory category, Money priceExcludingTax)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -100,19 +94,20 @@ public abstract class Article : AggregateRoot<ArticleId>
             throw new ArgumentException("Article category is invalid.", nameof(category));
         }
 
-        if (priceIncludingTax.Amount < priceExcludingTax.Amount)
-        {
-            throw new ArgumentException("Price including tax must be greater than or equal to price excluding tax.");
-        }
-
         Name = name.Trim();
         Category = category;
         PriceExcludingTax = priceExcludingTax;
-        PriceIncludingTax = priceIncludingTax;
     }
 
     public void ChangeReference(Ean13Reference reference)
     {
         Reference = reference;
+    }
+
+    protected abstract decimal Vax();
+
+    protected void RecalculatePriceIncludingTax()
+    {
+        PriceIncludingTax = new Money(PriceExcludingTax.Amount + (Vax() * PriceExcludingTax.Amount));
     }
 }

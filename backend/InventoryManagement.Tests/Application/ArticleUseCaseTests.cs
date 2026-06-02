@@ -18,13 +18,13 @@ public sealed class ArticleUseCaseTests
                 "Sandwich",
                 "FoodItem",
                 4,
-                4.4m,
                 "2026-06-30",
                 "Both",
                 PackagingLevel: null),
             CancellationToken.None);
 
         Assert.Equal("FoodItem", article.Category);
+        Assert.Equal(4.2m, article.PriceIncludingTax);
         Assert.Equal("2026-06-30", article.ExpirationDate);
         Assert.Equal("Both", article.TakeawayAvailability);
         Assert.Null(article.PackagingLevel);
@@ -41,13 +41,13 @@ public sealed class ArticleUseCaseTests
                 "Keyboard",
                 "Merchandise",
                 100,
-                120,
-                ExpirationDate: null,
-                TakeawayAvailability: null,
-                PackagingLevel: "Refurbished"),
+                null,
+                null,
+                "Refurbished"),
             CancellationToken.None);
 
         Assert.Equal("Merchandise", article.Category);
+        Assert.Equal(120, article.PriceIncludingTax);
         Assert.Equal("Refurbished", article.PackagingLevel);
         Assert.Null(article.ExpirationDate);
         Assert.Null(article.TakeawayAvailability);

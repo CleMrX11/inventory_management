@@ -13,11 +13,10 @@ public sealed class MerchandiseArticle : Article
         Ean13Reference reference,
         string name,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         PackagingLevel packagingLevel,
         DateOnly? expirationDate,
         TakeawayAvailability? takeawayAvailability)
-        : base(id, reference, name, ArticleCategory.Merchandise, priceExcludingTax, priceIncludingTax)
+        : base(id, reference, name, ArticleCategory.Merchandise, priceExcludingTax)
     {
         if (expirationDate.HasValue)
         {
@@ -30,16 +29,17 @@ public sealed class MerchandiseArticle : Article
         }
 
         UpdateMerchandiseDetails(packagingLevel);
+        RecalculatePriceIncludingTax();
     }
 
     public void Update(
         string name,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         PackagingLevel packagingLevel)
     {
-        UpdateCommon(name, priceExcludingTax, priceIncludingTax);
+        UpdateCommon(name, priceExcludingTax);
         UpdateMerchandiseDetails(packagingLevel);
+        RecalculatePriceIncludingTax();
     }
 
     private void UpdateMerchandiseDetails(PackagingLevel packagingLevel)
@@ -50,5 +50,10 @@ public sealed class MerchandiseArticle : Article
         }
 
         PackagingLevel = packagingLevel;
+    }
+
+    protected override decimal Vax()
+    {
+        return 0.2M;
     }
 }

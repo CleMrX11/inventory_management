@@ -20,7 +20,6 @@ public sealed class CreateArticleUseCase(IArticleRepository articles, IUnitOfWor
             command.Name,
             ArticleCategoryParser.Parse(command.Category),
             new Money(command.PriceExcludingTax),
-            new Money(command.PriceIncludingTax),
             ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate),
             ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability),
             ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel));

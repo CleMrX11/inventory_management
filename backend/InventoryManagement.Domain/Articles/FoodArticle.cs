@@ -14,11 +14,10 @@ public sealed class FoodArticle : Article
         Ean13Reference reference,
         string name,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         DateOnly expirationDate,
         TakeawayAvailability takeawayAvailability,
         PackagingLevel? packagingLevel)
-        : base(id, reference, name, ArticleCategory.FoodItem, priceExcludingTax, priceIncludingTax)
+        : base(id, reference, name, ArticleCategory.FoodItem, priceExcludingTax)
     {
         if (packagingLevel.HasValue)
         {
@@ -26,17 +25,18 @@ public sealed class FoodArticle : Article
         }
 
         UpdateFoodDetails(expirationDate, takeawayAvailability);
+        RecalculatePriceIncludingTax();
     }
 
     public void Update(
         string name,
         Money priceExcludingTax,
-        Money priceIncludingTax,
         DateOnly expirationDate,
         TakeawayAvailability takeawayAvailability)
     {
-        UpdateCommon(name, priceExcludingTax, priceIncludingTax);
+        UpdateCommon(name, priceExcludingTax);
         UpdateFoodDetails(expirationDate, takeawayAvailability);
+        RecalculatePriceIncludingTax();
     }
 
     private void UpdateFoodDetails(DateOnly expirationDate, TakeawayAvailability takeawayAvailability)
@@ -48,5 +48,18 @@ public sealed class FoodArticle : Article
 
         ExpirationDate = expirationDate;
         TakeawayAvailability = takeawayAvailability;
+    }
+
+    protected override decimal Vax()
+    {
+        if (TakeawayAvailability == TakeawayAvailability.TakeawayOnly ||
+            TakeawayAvailability == TakeawayAvailability.Both)
+        {
+            return 0.055M;
+        }
+        else
+        {
+            return 0.10M;
+        }
     }
 }

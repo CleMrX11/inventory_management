@@ -5,7 +5,6 @@ public sealed record CreateArticleRequest(
     string Name,
     string Category,
     decimal PriceExcludingTax,
-    decimal PriceIncludingTax,
     string? ExpirationDate,
     string? TakeawayAvailability,
     string? PackagingLevel);

@@ -5,17 +5,67 @@ namespace InventoryManagement.Tests.Domain;
 public sealed class ArticleTests
 {
     [Fact]
-    public void CreateRejectsPriceIncludingTaxLowerThanPriceExcludingTax()
+    public void CreateFoodArticleWithTakeawayOnlyAppliesFivePercentTax()
     {
-        Assert.Throws<ArgumentException>(() => Article.Create(
+        var article = Article.Create(
+            new Ean13Reference("4006381333931"),
+            "Sandwich",
+            ArticleCategory.FoodItem,
+            new Money(4),
+            expirationDate: new DateOnly(2026, 6, 1),
+            takeawayAvailability: TakeawayAvailability.TakeawayOnly,
+            packagingLevel: null);
+
+        Assert.Equal(new Money(4), article.PriceExcludingTax);
+        Assert.Equal(new Money(4.2m), article.PriceIncludingTax);
+    }
+
+    [Fact]
+    public void CreateFoodArticleWithBothAppliesFivePercentTax()
+    {
+        var article = Article.Create(
+            new Ean13Reference("4006381333931"),
+            "Sandwich",
+            ArticleCategory.FoodItem,
+            new Money(4),
+            expirationDate: new DateOnly(2026, 6, 1),
+            takeawayAvailability: TakeawayAvailability.Both,
+            packagingLevel: null);
+
+        Assert.Equal(new Money(4), article.PriceExcludingTax);
+        Assert.Equal(new Money(4.2m), article.PriceIncludingTax);
+    }
+
+    [Fact]
+    public void CreateFoodArticleWithOnSiteOnlyAppliesTenPercentTax()
+    {
+        var article = Article.Create(
+            new Ean13Reference("4006381333931"),
+            "Sandwich",
+            ArticleCategory.FoodItem,
+            new Money(4),
+            expirationDate: new DateOnly(2026, 6, 1),
+            takeawayAvailability: TakeawayAvailability.OnSiteOnly,
+            packagingLevel: null);
+
+        Assert.Equal(new Money(4), article.PriceExcludingTax);
+        Assert.Equal(new Money(4.4m), article.PriceIncludingTax);
+    }
+
+    [Fact]
+    public void CreateMerchandiseArticleAppliesTwentyPercentTax()
+    {
+        var article = Article.Create(
             new Ean13Reference("4006381333931"),
             "Keyboard",
             ArticleCategory.Merchandise,
-            new Money(120),
             new Money(100),
             expirationDate: null,
             takeawayAvailability: null,
-            packagingLevel: PackagingLevel.New));
+            packagingLevel: PackagingLevel.New);
+
+        Assert.Equal(new Money(100), article.PriceExcludingTax);
+        Assert.Equal(new Money(120), article.PriceIncludingTax);
     }
 
     [Fact]
@@ -26,7 +76,6 @@ public sealed class ArticleTests
             "Keyboard",
             (ArticleCategory)999,
             new Money(100),
-            new Money(120),
             expirationDate: null,
             takeawayAvailability: null,
             packagingLevel: PackagingLevel.New));
@@ -40,7 +89,6 @@ public sealed class ArticleTests
             "Sandwich",
             ArticleCategory.FoodItem,
             new Money(4),
-            new Money(4.4m),
             expirationDate: null,
             takeawayAvailability: TakeawayAvailability.Both,
             packagingLevel: null));
@@ -54,8 +102,7 @@ public sealed class ArticleTests
             "Sandwich",
             ArticleCategory.FoodItem,
             new Money(4),
-            new Money(4.4m),
-            DateOnly.FromDateTime(DateTime.Today),
+            new DateOnly(2026, 6, 1),
             takeawayAvailability: null,
             packagingLevel: null));
     }
@@ -68,8 +115,7 @@ public sealed class ArticleTests
             "Sandwich",
             ArticleCategory.FoodItem,
             new Money(4),
-            new Money(4.4m),
-            DateOnly.FromDateTime(DateTime.Today),
+            new DateOnly(2026, 6, 1),
             TakeawayAvailability.Both,
             PackagingLevel.New));
     }
@@ -82,8 +128,7 @@ public sealed class ArticleTests
             "Sandwich",
             ArticleCategory.FoodItem,
             new Money(4),
-            new Money(4.4m),
-            DateOnly.FromDateTime(DateTime.Today),
+            new DateOnly(2026, 6, 1),
             (TakeawayAvailability)999,
             packagingLevel: null));
     }
@@ -96,7 +141,6 @@ public sealed class ArticleTests
             "Keyboard",
             ArticleCategory.Merchandise,
             new Money(100),
-            new Money(120),
             expirationDate: null,
             takeawayAvailability: null,
             packagingLevel: null));
@@ -110,7 +154,6 @@ public sealed class ArticleTests
             "Keyboard",
             ArticleCategory.Merchandise,
             new Money(100),
-            new Money(120),
             expirationDate: null,
             takeawayAvailability: null,
             packagingLevel: (PackagingLevel)999));
@@ -124,8 +167,7 @@ public sealed class ArticleTests
             "Keyboard",
             ArticleCategory.Merchandise,
             new Money(100),
-            new Money(120),
-            DateOnly.FromDateTime(DateTime.Today),
+            new DateOnly(2026, 6, 1),
             TakeawayAvailability.Both,
             PackagingLevel.New));
     }

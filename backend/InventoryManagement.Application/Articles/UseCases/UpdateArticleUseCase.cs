@@ -21,7 +21,6 @@ public sealed class UpdateArticleUseCase(IArticleRepository articles, IUnitOfWor
 
         var category = ArticleCategoryParser.Parse(command.Category);
         var priceExcludingTax = new Money(command.PriceExcludingTax);
-        var priceIncludingTax = new Money(command.PriceIncludingTax);
         var expirationDate = ArticleSpecificityParser.ParseExpirationDate(command.ExpirationDate);
         var takeawayAvailability = ArticleSpecificityParser.ParseTakeawayAvailability(command.TakeawayAvailability);
         var packagingLevel = ArticleSpecificityParser.ParsePackagingLevel(command.PackagingLevel);
@@ -32,7 +31,6 @@ public sealed class UpdateArticleUseCase(IArticleRepository articles, IUnitOfWor
             command.Name,
             category,
             priceExcludingTax,
-            priceIncludingTax,
             expirationDate,
             takeawayAvailability,
             packagingLevel);
