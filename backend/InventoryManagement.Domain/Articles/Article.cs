@@ -90,15 +90,9 @@ public abstract class Article : AggregateRoot<ArticleId>
 
     public decimal CalculatePriceIncludingTax(TakeawayAvailability? takeawayAvailability = null)
     {
-        var taxRate = Category switch
-        {
-            ArticleCategory.FoodItem => takeawayAvailability is TakeawayAvailability.TakeawayOnly or TakeawayAvailability.Both
-                ? 0.055m
-                : 0.10m,
-            ArticleCategory.Merchandise => 0.20m,
-            _ => throw new InvalidOperationException("Article category is invalid."),
-        };
-
+        var taxRate = Vax(takeawayAvailability);
         return PriceExcludingTax.Amount + (taxRate * PriceExcludingTax.Amount);
     }
+
+    protected abstract decimal Vax(TakeawayAvailability? takeawayAvailability);
 }

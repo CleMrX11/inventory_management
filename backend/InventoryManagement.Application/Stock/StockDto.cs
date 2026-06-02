@@ -4,6 +4,7 @@ public sealed record StockDto(
     Guid ArticleId,
     int CurrentQuantity,
     int SellableQuantity,
+    decimal SellableValueIncludingTax,
     IReadOnlyList<StockLotDto> Lots,
     IReadOnlyList<StockMovementDto> Movements);
 
@@ -15,4 +16,5 @@ public sealed record StockLotDto(
     string? ExpirationDate,
     string? TakeawayAvailability,
     string? PackagingLevel,
-    decimal PriceIncludingTax);
+    decimal PriceIncludingTax,
+    decimal SellableValueIncludingTax);

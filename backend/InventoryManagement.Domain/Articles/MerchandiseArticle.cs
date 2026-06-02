@@ -21,4 +21,9 @@ public sealed class MerchandiseArticle : Article
     {
         UpdateCommon(name, priceExcludingTax);
     }
+
+    protected override decimal Vax(TakeawayAvailability? takeawayAvailability)
+    {
+        return 0.20m;
+    }
 }

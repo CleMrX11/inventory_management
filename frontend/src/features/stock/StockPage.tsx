@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Check, Minus, PackageSearch, Plus, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { Check, History, Minus, PackageSearch, Plus, RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -41,6 +41,28 @@ const currencyFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
   currency: 'EUR',
 })
+
+function asFiniteNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+function formatCurrency(value: unknown) {
+  return currencyFormatter.format(asFiniteNumber(value))
+}
+
+function lotSellableValue(lot: Stock['lots'][number]) {
+  const apiValue = asFiniteNumber(lot.sellableValueIncludingTax)
+  return apiValue > 0 ? apiValue : asFiniteNumber(lot.sellableQuantity) * asFiniteNumber(lot.priceIncludingTax)
+}
+
+function stockSellableValue(stock: Stock | null | undefined) {
+  if (!stock) {
+    return 0
+  }
+
+  const apiValue = asFiniteNumber(stock.sellableValueIncludingTax)
+  return apiValue > 0 ? apiValue : stock.lots.reduce((total, lot) => total + lotSellableValue(lot), 0)
+}
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
@@ -178,6 +200,10 @@ export function StockPage() {
     setSelectedArticleId(articleId)
     setLastMovement(null)
     setError(null)
+  }
+
+  function handleOpenMovements(articleId: string) {
+    handleSelectArticle(articleId)
     navigate(`/stock/${articleId}/movements`)
   }
 
@@ -220,6 +246,7 @@ export function StockPage() {
                       <TableHead>Name</TableHead>
                       <TableHead className="text-right">Current quantity</TableHead>
                       <TableHead className="text-right">Sellable</TableHead>
+                      <TableHead className="text-right">Sellable value TTC</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -231,8 +258,7 @@ export function StockPage() {
                       return (
                         <TableRow
                           key={article.id}
-                          className={cn('cursor-pointer', isSelected && 'bg-muted/50')}
-                          onClick={() => handleSelectArticle(article.id)}
+                          className={cn(isSelected && 'bg-muted/50')}
                         >
                           <TableCell className="font-mono">{article.reference}</TableCell>
                           <TableCell className="font-medium">{article.name}</TableCell>
@@ -242,12 +268,17 @@ export function StockPage() {
                           <TableCell className="text-right text-lg font-semibold tabular-nums">
                             {stock?.sellableQuantity ?? 0}
                           </TableCell>
+                          <TableCell className="text-right text-lg font-semibold tabular-nums">
+                            {formatCurrency(stockSellableValue(stock))}
+                          </TableCell>
                           <TableCell>
-                            <div className="flex justify-end">
+                            <div className="flex justify-end gap-2">
                               <Button
                                 type="button"
-                                size="sm"
+                                size="icon"
                                 variant={isSelected ? 'secondary' : 'outline'}
+                                aria-label={isSelected ? `${article.name} selected` : `Select ${article.name}`}
+                                title={isSelected ? 'Selected' : 'Select'}
                                 onClick={() => handleSelectArticle(article.id)}
                               >
                                 {isSelected ? (
@@ -255,7 +286,16 @@ export function StockPage() {
                                 ) : (
                                   <PackageSearch className="h-4 w-4" aria-hidden="true" />
                                 )}
-                                {isSelected ? 'Selected' : 'Open'}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                                aria-label={`Open movement history for ${article.name}`}
+                                title="Movements"
+                                onClick={() => handleOpenMovements(article.id)}
+                              >
+                                <History className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </TableCell>
@@ -274,7 +314,9 @@ export function StockPage() {
             <CardHeader>
               <CardTitle>Movement</CardTitle>
               <CardDescription>
-                {selectedArticle ? `${selectedArticle.name} has ${selectedStock?.currentQuantity ?? 0} units.` : 'No article selected.'}
+                {selectedArticle
+                  ? `${selectedArticle.name} has ${selectedStock?.currentQuantity ?? 0} units, ${selectedStock?.sellableQuantity ?? 0} sellable, worth ${formatCurrency(stockSellableValue(selectedStock))} TTC.`
+                  : 'No article selected.'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -420,6 +462,7 @@ export function StockPage() {
                           <TableHead className="text-right">Qty</TableHead>
                           <TableHead className="text-right">Sellable</TableHead>
                           <TableHead className="text-right">TTC</TableHead>
+                          <TableHead className="text-right">Sellable value</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -432,7 +475,8 @@ export function StockPage() {
                             </TableCell>
                             <TableCell className="text-right tabular-nums">{lot.currentQuantity}</TableCell>
                             <TableCell className="text-right tabular-nums">{lot.sellableQuantity}</TableCell>
-                            <TableCell className="text-right tabular-nums">{currencyFormatter.format(lot.priceIncludingTax)}</TableCell>
+                            <TableCell className="text-right tabular-nums">{formatCurrency(lot.priceIncludingTax)}</TableCell>
+                            <TableCell className="text-right tabular-nums">{formatCurrency(lotSellableValue(lot))}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

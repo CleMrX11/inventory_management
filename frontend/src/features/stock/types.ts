@@ -6,6 +6,7 @@ export type Stock = {
   articleId: string
   currentQuantity: number
   sellableQuantity: number
+  sellableValueIncludingTax: number
   lots: StockLot[]
   movements: StockMovement[]
 }
@@ -19,6 +20,7 @@ export type StockLot = {
   takeawayAvailability?: TakeawayAvailability | null
   packagingLevel?: PackagingLevel | null
   priceIncludingTax: number
+  sellableValueIncludingTax: number
 }
 
 export type StockMovementPayload = {

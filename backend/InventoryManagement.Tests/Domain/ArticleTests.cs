@@ -25,6 +25,14 @@ public sealed class ArticleTests
     }
 
     [Fact]
+    public void CalculatePriceIncludingTaxRejectsMissingFoodTakeawayAvailability()
+    {
+        var article = CreateFoodArticle();
+
+        Assert.Throws<ArgumentException>(() => article.CalculatePriceIncludingTax());
+    }
+
+    [Fact]
     public void CalculatePriceIncludingTaxUsesMerchandiseTax()
     {
         var article = Article.Create(

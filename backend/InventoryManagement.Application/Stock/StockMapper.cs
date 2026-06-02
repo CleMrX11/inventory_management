@@ -22,6 +22,7 @@ internal static class StockMapper
             article.Id.Value,
             lots.Sum(lot => lot.CurrentQuantity),
             lots.Sum(lot => lot.SellableQuantity),
+            lots.Sum(lot => lot.SellableValueIncludingTax),
             lots,
             movements);
     }
@@ -45,15 +46,19 @@ internal static class StockMapper
 
     private static StockLotDto ToLotDto(Article article, StockItem stockItem, DateOnly today)
     {
+        var sellableQuantity = CalculateSellableQuantity(article, stockItem, today);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(stockItem.TakeawayAvailability);
+
         return new StockLotDto(
             stockItem.Id.Value,
             stockItem.ArticleId.Value,
             stockItem.CurrentQuantity,
-            CalculateSellableQuantity(article, stockItem, today),
+            sellableQuantity,
             stockItem.ExpirationDate?.ToString("yyyy-MM-dd"),
             stockItem.TakeawayAvailability?.ToString(),
             stockItem.PackagingLevel?.ToString(),
-            article.CalculatePriceIncludingTax(stockItem.TakeawayAvailability));
+            priceIncludingTax,
+            sellableQuantity * priceIncludingTax);
     }
 
     private static int CalculateSellableQuantity(Article article, StockItem stockItem, DateOnly today)

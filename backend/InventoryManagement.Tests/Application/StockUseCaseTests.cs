@@ -23,6 +23,7 @@ public sealed class StockUseCaseTests
         Assert.Equal(article.Id.Value, stock.ArticleId);
         Assert.Equal(0, stock.CurrentQuantity);
         Assert.Equal(0, stock.SellableQuantity);
+        Assert.Equal(0, stock.SellableValueIncludingTax);
         Assert.Empty(stock.Lots);
         Assert.Empty(stock.Movements);
     }
@@ -43,8 +44,10 @@ public sealed class StockUseCaseTests
 
         Assert.Equal(13, stock.CurrentQuantity);
         Assert.Equal(10, stock.SellableQuantity);
+        Assert.Equal(1200, stock.SellableValueIncludingTax);
         Assert.Equal(2, stock.Lots.Count);
         Assert.All(stock.Lots, lot => Assert.Equal(120, lot.PriceIncludingTax));
+        Assert.Contains(stock.Lots, lot => lot.PackagingLevel == "Unsellable" && lot.SellableValueIncludingTax == 0);
     }
 
     [Fact]
@@ -63,7 +66,9 @@ public sealed class StockUseCaseTests
 
         Assert.Equal(12, stock.CurrentQuantity);
         Assert.Equal(7, stock.SellableQuantity);
+        Assert.Equal(29.54m, stock.SellableValueIncludingTax);
         Assert.Contains(stock.Lots, lot => lot.ExpirationDate == expiredLot.ExpirationDate?.ToString("yyyy-MM-dd") && lot.SellableQuantity == 0);
+        Assert.Contains(stock.Lots, lot => lot.ExpirationDate == expiredLot.ExpirationDate?.ToString("yyyy-MM-dd") && lot.SellableValueIncludingTax == 0);
         Assert.Contains(stock.Lots, lot => lot.PriceIncludingTax == 4.22m);
     }
 

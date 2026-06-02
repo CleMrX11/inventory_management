@@ -21,4 +21,21 @@ public sealed class FoodArticle : Article
     {
         UpdateCommon(name, priceExcludingTax);
     }
+
+    protected override decimal Vax(TakeawayAvailability? takeawayAvailability)
+    {
+        if (!takeawayAvailability.HasValue)
+        {
+            throw new ArgumentException("Takeaway availability is required to calculate food tax.", nameof(takeawayAvailability));
+        }
+
+        if (!Enum.IsDefined(takeawayAvailability.Value))
+        {
+            throw new ArgumentException("Takeaway availability is invalid.", nameof(takeawayAvailability));
+        }
+
+        return takeawayAvailability is TakeawayAvailability.TakeawayOnly or TakeawayAvailability.Both
+            ? 0.055m
+            : 0.10m;
+    }
 }
