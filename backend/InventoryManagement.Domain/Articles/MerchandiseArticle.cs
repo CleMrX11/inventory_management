@@ -22,7 +22,7 @@ public sealed class MerchandiseArticle : Article
         UpdateCommon(name, priceExcludingTax);
     }
 
-    protected override decimal Vax(TakeawayAvailability? takeawayAvailability)
+    protected override decimal Vat(SaleMode? saleMode)
     {
         return 0.20m;
     }

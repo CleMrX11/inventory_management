@@ -73,6 +73,26 @@ public sealed class StockUseCaseTests
     }
 
     [Fact]
+    public async Task GetStockUsesOnSiteSaleModeForOnSiteOnlyFoodLots()
+    {
+        var article = CreateFoodArticle();
+        var lot = CreateFoodStockItem(
+            article,
+            DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
+            TakeawayAvailability.OnSiteOnly);
+        lot.Receive(2, "Fresh delivery");
+        var useCase = new GetStockByArticleIdUseCase(
+            new InMemoryArticleRepository(article),
+            new InMemoryStockItemRepository(lot));
+
+        var stock = await useCase.ExecuteAsync(article.Id.Value, CancellationToken.None);
+
+        Assert.Single(stock.Lots);
+        Assert.Equal(4.40m, stock.Lots[0].PriceIncludingTax);
+        Assert.Equal(8.80m, stock.SellableValueIncludingTax);
+    }
+
+    [Fact]
     public async Task CreateStockMovementCreatesLotAndPersistsMovement()
     {
         var article = CreateMerchandiseArticle();
@@ -181,7 +201,15 @@ public sealed class StockUseCaseTests
 
     private static StockItem CreateFoodStockItem(Article article, DateOnly expirationDate)
     {
-        return StockItem.Create(article, expirationDate, TakeawayAvailability.TakeawayOnly, null);
+        return CreateFoodStockItem(article, expirationDate, TakeawayAvailability.TakeawayOnly);
+    }
+
+    private static StockItem CreateFoodStockItem(
+        Article article,
+        DateOnly expirationDate,
+        TakeawayAvailability takeawayAvailability)
+    {
+        return StockItem.Create(article, expirationDate, takeawayAvailability, null);
     }
 
     private static Article CreateMerchandiseArticle()

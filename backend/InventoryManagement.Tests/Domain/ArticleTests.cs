@@ -9,7 +9,7 @@ public sealed class ArticleTests
     {
         var article = CreateFoodArticle();
 
-        var priceIncludingTax = article.CalculatePriceIncludingTax(TakeawayAvailability.TakeawayOnly);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(SaleMode.Takeaway);
 
         Assert.Equal(4.22m, priceIncludingTax);
     }
@@ -19,7 +19,7 @@ public sealed class ArticleTests
     {
         var article = CreateFoodArticle();
 
-        var priceIncludingTax = article.CalculatePriceIncludingTax(TakeawayAvailability.OnSiteOnly);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(SaleMode.OnSite);
 
         Assert.Equal(4.40m, priceIncludingTax);
     }
@@ -30,6 +30,14 @@ public sealed class ArticleTests
         var article = CreateFoodArticle();
 
         Assert.Throws<ArgumentException>(() => article.CalculatePriceIncludingTax());
+    }
+
+    [Fact]
+    public void CalculatePriceIncludingTaxRejectsInvalidFoodSaleMode()
+    {
+        var article = CreateFoodArticle();
+
+        Assert.Throws<ArgumentException>(() => article.CalculatePriceIncludingTax((SaleMode)999));
     }
 
     [Fact]

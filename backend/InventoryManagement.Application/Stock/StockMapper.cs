@@ -47,7 +47,7 @@ internal static class StockMapper
     private static StockLotDto ToLotDto(Article article, StockItem stockItem, DateOnly today)
     {
         var sellableQuantity = CalculateSellableQuantity(article, stockItem, today);
-        var priceIncludingTax = article.CalculatePriceIncludingTax(stockItem.TakeawayAvailability);
+        var priceIncludingTax = article.CalculatePriceIncludingTax(ResolveSaleMode(article, stockItem));
 
         return new StockLotDto(
             stockItem.Id.Value,
@@ -68,6 +68,21 @@ internal static class StockMapper
             ArticleCategory.Merchandise when stockItem.PackagingLevel == PackagingLevel.Unsellable => 0,
             ArticleCategory.FoodItem when stockItem.ExpirationDate < today => 0,
             _ => stockItem.CurrentQuantity,
+        };
+    }
+
+    private static SaleMode? ResolveSaleMode(Article article, StockItem stockItem)
+    {
+        if (article.Category != ArticleCategory.FoodItem)
+        {
+            return null;
+        }
+
+        return stockItem.TakeawayAvailability switch
+        {
+            TakeawayAvailability.OnSiteOnly => SaleMode.OnSite,
+            TakeawayAvailability.TakeawayOnly or TakeawayAvailability.Both => SaleMode.Takeaway,
+            _ => throw new ArgumentException("Takeaway availability is invalid.", nameof(stockItem)),
         };
     }
 }

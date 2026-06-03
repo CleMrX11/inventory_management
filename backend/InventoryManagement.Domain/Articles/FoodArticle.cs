@@ -22,19 +22,19 @@ public sealed class FoodArticle : Article
         UpdateCommon(name, priceExcludingTax);
     }
 
-    protected override decimal Vax(TakeawayAvailability? takeawayAvailability)
+    protected override decimal Vat(SaleMode? saleMode)
     {
-        if (!takeawayAvailability.HasValue)
+        if (!saleMode.HasValue)
         {
-            throw new ArgumentException("Takeaway availability is required to calculate food tax.", nameof(takeawayAvailability));
+            throw new ArgumentException("Sale mode is required to calculate food tax.", nameof(saleMode));
         }
 
-        if (!Enum.IsDefined(takeawayAvailability.Value))
+        if (!Enum.IsDefined(saleMode.Value))
         {
-            throw new ArgumentException("Takeaway availability is invalid.", nameof(takeawayAvailability));
+            throw new ArgumentException("Sale mode is invalid.", nameof(saleMode));
         }
 
-        return takeawayAvailability is TakeawayAvailability.TakeawayOnly or TakeawayAvailability.Both
+        return saleMode == SaleMode.Takeaway
             ? 0.055m
             : 0.10m;
     }

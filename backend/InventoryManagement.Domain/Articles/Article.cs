@@ -88,11 +88,11 @@ public abstract class Article : AggregateRoot<ArticleId>
         Reference = reference;
     }
 
-    public decimal CalculatePriceIncludingTax(TakeawayAvailability? takeawayAvailability = null)
+    public decimal CalculatePriceIncludingTax(SaleMode? saleMode = null)
     {
-        var taxRate = Vax(takeawayAvailability);
+        var taxRate = Vat(saleMode);
         return PriceExcludingTax.Amount + (taxRate * PriceExcludingTax.Amount);
     }
 
-    protected abstract decimal Vax(TakeawayAvailability? takeawayAvailability);
+    protected abstract decimal Vat(SaleMode? saleMode);
 }
